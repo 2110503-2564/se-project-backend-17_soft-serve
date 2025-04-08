@@ -1,6 +1,6 @@
 {
   "version" : 2,
-  "name" : "backache-restaurant-backend",
+  "name" : "softserve-softeng",
   "builds" : [
       {
           "src": "server.js",

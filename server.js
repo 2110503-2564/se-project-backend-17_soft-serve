@@ -59,7 +59,7 @@ const swaggerOptions = {
         info: {
             title: 'Library API',
             version: '1.0.0',
-            description: 'Backache Backend for SWDev Frontend'
+            description: 'SoftServe Library API',
         },
         servers: [
             {
