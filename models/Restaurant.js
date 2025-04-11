@@ -61,13 +61,6 @@ const RestaurantSchema = new mongoose.Schema({
             message: 'Closing time must be after opening time'
         }
     },
-    rating: {
-        type: Number,
-        min: 0,
-        max: 5,
-        default: 0,
-        set: v => (Math.round(v * 10) / 10).toFixed(1)
-    },
     maxReservation: {
         type: Number,
         min: [0, 'Max reservation must be greater than or equal to 0'],
@@ -75,7 +68,8 @@ const RestaurantSchema = new mongoose.Schema({
     },
     imgPath : {
         type: String,
-        default : "https://drive.google.com/uc?id=1lwTwYL45cFtoBKQvvj0V49Zd8j_PWiyr"
+        default : "https://drive.google.com/uc?id=1lwTwYL45cFtoBKQvvj0V49Zd8j_PWiyr",
+        required: [true, 'Please add an image path']
     }
 }, {
     toJSON: { virtuals: true },

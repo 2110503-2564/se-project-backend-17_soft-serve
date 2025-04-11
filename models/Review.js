@@ -5,7 +5,8 @@ const ReviewSchema = new mongoose.Schema({
         type: Number,
         min: 1,
         max: 5,
-        required: true
+        required: true,
+        set: v => (Math.round(v * 10) / 10).toFixed(1)
     },
     review: {
         type: String,
