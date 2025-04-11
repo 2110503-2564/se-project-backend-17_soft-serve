@@ -49,6 +49,11 @@ exports.login = async (req, res, next) => {
         return res.status(400).json({ success: false, msg: 'Invalid credentials' });
     }
 
+    if (user.role == "restaurantManager"){
+        if(!user.verified)
+            return res.status(400).json({ success: false, msg: 'not verified' });
+    }
+
     // Create token
     sendTokenResponse(user, 200, res);
 };
