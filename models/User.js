@@ -44,7 +44,13 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         // check if role don't be restaurantmanager this will not appear
         required: function() { return this.role === 'restaurantManager'; },
-        default: false
+    },
+    restaurant: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Restaurant',
+        required: function() {
+            return this.role === 'restaurantManager';
+        }
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
