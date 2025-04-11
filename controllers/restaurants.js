@@ -17,6 +17,8 @@ const logAdminAction = async (adminId, action, resource, resourceId) => {
     }
   };
 
+  exports.logAdminAction = logAdminAction
+
 // @desc    Get all restaurants
 // @route   GET /api/v1/restaurants
 // @access  Public

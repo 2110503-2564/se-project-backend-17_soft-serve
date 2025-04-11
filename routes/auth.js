@@ -1,5 +1,5 @@
 const express = require('express');
-const {register, login, logout, getMe} = require('../controllers/auth');
+const {register, login, logout, getMe,deleteUser} = require('../controllers/auth');
 const {protect,authorize} = require('../middleware/auth');
 
 const router = express.Router();
@@ -145,4 +145,5 @@ router.get('/admin/logs', protect, authorize('admin'), async (req, res) => {
     res.status(200).json({ success: true, data: logs });
 });
 
+router.route('/deluser/:id').delete(protect,authorize('admin'),deleteUser);
 module.exports = router;
