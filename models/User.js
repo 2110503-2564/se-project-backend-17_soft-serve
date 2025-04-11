@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
     role : {
         type : String,
-        enum : ['user', 'admin'],
+        enum : ['user', 'admin','restaurantManager'],
         default : 'user'
     },
     password : {
@@ -38,6 +38,19 @@ const UserSchema = new mongoose.Schema({
         required : [true,'Please add a password'],
         minlength: 8,
         select: false
+    },
+    //validation for restaurant manager
+    verified: {
+        type: Boolean,
+        // check if role don't be restaurantmanager this will not appear
+        required: function() { return this.role === 'restaurantManager'; },
+    },
+    restaurant: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Restaurant',
+        required: function() {
+            return this.role === 'restaurantManager';
+        }
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,

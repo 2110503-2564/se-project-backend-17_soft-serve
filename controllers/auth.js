@@ -5,18 +5,23 @@ const User = require('../models/User');
 // @access  Public
 exports.register = async (req, res, next) => {
     try {
-        const { name, tel, email, password, role } = req.body;
-
-        // Create User
+        let { name, tel, email, password, role, verified, restaurant } = req.body;
+        // Only allow verified and restaurant if role is restaurantManager
+        if (role !== 'restaurantManager') {
+            verified = undefined;
+            restaurant = undefined;
+        }
         const user = await User.create({
             name,
             tel,
             email,
             password,
-            role
+            role,
+            verified,
+            restaurant
         });
 
-        // Create token
+
         sendTokenResponse(user, 200, res);
     } catch (err) {
         console.error(err.message);
@@ -47,6 +52,11 @@ exports.login = async (req, res, next) => {
 
     if (!isMatch) {
         return res.status(400).json({ success: false, msg: 'Invalid credentials' });
+    }
+
+    if (user.role == "restaurantManager"){
+        if(!user.verified)
+            return res.status(400).json({ success: false, msg: 'not verified' });
     }
 
     // Create token
