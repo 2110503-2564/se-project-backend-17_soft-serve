@@ -1,4 +1,4 @@
-const Review = require('../models/review');
+const Review = require('../models/Review');
 
 // @desc    Create a review
 // @route   POST /api/v1/reviews
