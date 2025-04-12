@@ -155,3 +155,57 @@ exports.deleteUser = async (req, res, next) => {
         res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
+
+// @desc    Update current logged in user
+// @route   PATCH /api/v1/auth/updateuser
+// @access  Private
+exports.updateMe = async (req, res, next) => {
+    try {
+        const fieldsToUpdate = {};
+
+        // Select fields that are allowed to be updated
+        if (req.body.name) fieldsToUpdate.name = req.body.name;
+        if (req.body.tel) fieldsToUpdate.tel = req.body.tel;
+        // Do not allow updating email, password, or role here
+
+        const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, msg: 'Server Error' });
+    }
+};
+
+// @desc    Change user password
+// @route   PATCH /api/v1/auth/changepassword
+// @access  Private
+exports.changePassword = async (req, res, next) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, msg: 'Please provide current and new password' });
+    }
+
+    try {
+        const user = await User.findById(req.user.id).select('+password');
+
+        // Check if the current password is correct
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, msg: 'Current password is incorrect' });
+        }
+
+        // Update the password and save
+        user.password = newPassword;
+        await user.save(); // Use save() to trigger the pre 'save' hook (hash password)
+
+        res.status(200).json({ success: true, msg: 'Password updated successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, msg: 'Server Error' });
+    }
+};

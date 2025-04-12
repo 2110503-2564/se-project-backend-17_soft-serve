@@ -1,4 +1,5 @@
 const Notification = require('../models/Notification');
+const Reservation = require('../models/Reservation');
 
 // @desc    Create a notification
 // @route   POST /api/v1/notifications
@@ -58,7 +59,39 @@ exports.getNotifications = async (req, res, next) => {
         query = Notification.find({ creatorId: req.user._id });
     }else{
         // User can see their own notifications
-        query = Notification.find({ targetAudience: 'Customers' }); // Not finished
+        try{
+            const today = new Date();
+
+            const futureReservations = await Reservation.find({
+                user : req.user._id,
+                revDate :  {$gte:today}
+            }).select('restaurant');
+
+            const restaurantIDs = futureReservations.map(r => r.restaurant);
+
+            query = Notification.find({ 
+                
+                $or:[
+                    {
+                        targetAudience: 'Customers',  // Not finished
+                        creatorId : {$in: restaurantIDs}
+                    },
+                    {
+                        createdBy : 'admin'
+                    }
+                ]
+            });
+
+        }catch(error){
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+        
+
+        
+
     }
 
     try {
@@ -76,3 +109,38 @@ exports.getNotifications = async (req, res, next) => {
         });
     }
 }
+// @desc    Delete single notifications
+// @route   DELETE /api/v1/notifications/:id
+// @access  Private
+exports.deleteNotification = async (req, res, next) => {
+    try {
+        const notification = await Notification.findById(req.params.id);
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                error: `No notification found with ID of ${req.params.id}`
+            });
+        }
+
+        // Check if the user is authorized to delete the notification
+        if (notification.creatorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized to delete this notification'
+            });
+        }
+
+        await notification.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            data: {}
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};

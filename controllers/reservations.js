@@ -34,7 +34,7 @@ exports.getReservations = async (req, res, next) => {
         // Admin can see all reservations
 
         if (req.params.restaurantId) {
-            console.log(req.params.restaurantId);
+            // console.log(req.params.restaurantId);
 
             query = Reservation.find({ restaurant: req.params.restaurantId });
             // .populate({
@@ -58,7 +58,7 @@ exports.getReservations = async (req, res, next) => {
             data: reservations
         });
     } catch (err) {
-        console.log(err.message);
+        // console.log(err.message);
         res.status(500).json({ success: false, msg: 'Cannot find reservations' });
     }
 };
