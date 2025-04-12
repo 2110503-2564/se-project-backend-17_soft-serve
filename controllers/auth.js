@@ -155,3 +155,27 @@ exports.deleteUser = async (req, res, next) => {
         res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
+
+// @desc    Update current logged in user
+// @route   PATCH /api/v1/auth/updateuser
+// @access  Private
+exports.updateMe = async (req, res, next) => {
+    try {
+        const fieldsToUpdate = {};
+
+        // Select fields that are allowed to be updated
+        if (req.body.name) fieldsToUpdate.name = req.body.name;
+        if (req.body.tel) fieldsToUpdate.tel = req.body.tel;
+        // Do not allow updating email, password, or role here
+
+        const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, msg: 'Server Error' });
+    }
+};
