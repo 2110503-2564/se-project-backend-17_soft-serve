@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const {createNotification} = require('../controllers/notifications');
+const {createNotification, getNotifications} = require('../controllers/notifications');
 const { protect,authorize } = require('../middleware/auth');
 
 router.route('/')
+    .get(protect, authorize('admin', 'restaurantManager', 'user'), getNotifications)
     .post(protect, authorize('admin','restaurantManger'), createNotification);
 
 module.exports = router;
