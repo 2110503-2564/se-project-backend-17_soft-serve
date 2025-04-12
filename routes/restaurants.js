@@ -3,12 +3,14 @@ const {getRestaurants, getRestaurant, createRestaurant, updateRestaurant, delete
 const {protect, authorize} = require('../middleware/auth');
 // Include other resource routers
 const reservationRouter = require('./reservations');
+const reviewRouter = require('./reviews');
 
 const logAdminAction = require('../middleware/logAdminAction');
 
 const router = express.Router();
 
 router.use('/:restaurantId/reservations/', reservationRouter);
+router.use('/:restaurantId/reviews/', reviewRouter);
 
 router.route('/').get(getRestaurants)
                  .post(protect, authorize('admin'), createRestaurant);
