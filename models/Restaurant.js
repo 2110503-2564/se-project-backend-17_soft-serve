@@ -73,7 +73,8 @@ const RestaurantSchema = new mongoose.Schema({
     },
     verified: {
         type: Boolean,
-        default: false
+        default: false,
+        required: [true, 'Please add a verified status']
     }
 }, {
     toJSON: { virtuals: true },

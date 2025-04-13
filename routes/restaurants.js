@@ -18,7 +18,7 @@ router.route('/').get(getRestaurants)
                  .post(protect, authorize('admin'), createRestaurant);
 
 router.route('/:id').get(getRestaurant)
-                    .put(protect, authorize('admin'), updateRestaurant)
+                    .put(protect, authorize('admin', 'restaurantManager'), updateRestaurant)
                     .delete(protect, authorize('admin'), deleteRestaurant);
 
 /**

@@ -27,6 +27,7 @@ exports.getRestaurants = async (req, res, next) => {
 
     // Copy req.query
     const reqQuery = { ...req.query };
+    reqQuery.verified = true; // Ensure only verified restaurants are fetched
 
     // Fields to exclude
     const removeFields = ['select', 'sort', 'page', 'limit'];
@@ -34,7 +35,7 @@ exports.getRestaurants = async (req, res, next) => {
     // Loop over remove fields and delete them from reqQuery
     removeFields.forEach(param => delete reqQuery[param]);
 
-    let queryStr = JSON.stringify(req.query);
+    let queryStr = JSON.stringify(reqQuery);
     // Create operators ($gt,$gte,$lt,$lte)
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
@@ -104,8 +105,13 @@ exports.getRestaurant = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.id);
 
         if (!restaurant) {
-            return res.status(400).json({ success: false });
+            return res.status(404).json({ success: false, msg: 'Restaurant not found with the provided ID' });
         }
+
+        if (!restaurant.verified) {
+            return res.status(403).json({ success: false, msg: 'Restaurant not verified' });
+        }
+
         res.status(200).json({ success: true, data: restaurant });
     } catch (err) {
         console.error(err.stack);
@@ -139,6 +145,21 @@ exports.createRestaurant = async (req, res, next) => {
 // @access  Private
 exports.updateRestaurant = async (req, res, next) => {
     try {
+        const existing = await Restaurant.findById(req.params.id);
+        if (!existing || !existing.verified) {
+            return res.status(403).json({ success: false, msg: 'Restaurant not found or not verified' });
+        }
+
+        if (req.user.role === 'restaurantManager') {
+            const userRestaurantId = req.user.restaurant?.toString();
+            if (userRestaurantId !== req.params.id) {
+                return res.status(403).json({
+                    success: false,
+                    msg: 'You are not authorized to update this restaurant'
+                });
+            }
+        }
+
         const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true
