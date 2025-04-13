@@ -187,3 +187,41 @@ exports.deleteRestaurant = async (req, res, next) => {
         res.status(400).json({ success: false, msg: err.message });
     }
 };
+exports.createRestaurantForRestaurantManager = async (req, res, next) => {
+    try {
+        const restaurant = await Restaurant.create(req.body);
+
+        res.status(201).json({
+            success: true,
+            data: restaurant
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(400).json({ success: false, msg: err.message });
+    }
+};
+exports.deleteRestaurantOnUserFailure = async (restaurantId) => {
+    try {
+      // Find and delete the restaurant
+      const restaurant = await Restaurant.findById(restaurantId);
+  
+      if (!restaurant) {
+        console.error(`Restaurant not found with id: ${restaurantId} for system cleanup`);
+        return { success: false, message: 'Restaurant not found for cleanup' };
+      }
+  
+      // Log this system action
+      console.log(`System deleting restaurant ${restaurantId} due to user creation failure`);
+      
+      // Remove any associated reservations
+      await Reservation.deleteMany({ restaurant: restaurantId });
+      
+      // Delete the restaurant
+      await Restaurant.deleteOne({ _id: restaurantId });
+      
+      return { success: true, message: 'Restaurant successfully deleted during rollback' };
+    } catch (err) {
+      console.error('Error in deleteRestaurantOnUserFailure:', err);
+      return { success: false, message: err.message };
+    }
+  };

@@ -42,15 +42,12 @@ const UserSchema = new mongoose.Schema({
     //validation for restaurant manager
     verified: {
         type: Boolean,
-        // check if role don't be restaurantmanager this will not appear
-        required: function() { return this.role === 'restaurantManager'; },
+        default: undefined
     },
     restaurant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Restaurant',
-        required: function() {
-            return this.role === 'restaurantManager';
-        }
+        default: undefined
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,

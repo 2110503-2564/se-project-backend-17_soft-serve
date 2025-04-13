@@ -6,11 +6,19 @@ const { logAdminAction } = require('./restaurants');
 exports.register = async (req, res, next) => {
     try {
         let { name, tel, email, password, role, verified, restaurant } = req.body;
-        // Only allow verified and restaurant if role is restaurantManager
-        if (role !== 'restaurantManager') {
+        
+        // Ensure role is provided for restaurantManager registration
+        if (!role && req.path.includes('restaurantManager')) {
+            role = 'restaurantManager';
+        }
+
+        if (role === 'restaurantManager') {
+            verified = verified !== undefined ? verified : false;
+        } else {
             verified = undefined;
             restaurant = undefined;
         }
+
         const user = await User.create({
             name,
             tel,
@@ -21,14 +29,19 @@ exports.register = async (req, res, next) => {
             restaurant
         });
 
-
         sendTokenResponse(user, 200, res);
     } catch (err) {
-        console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message});
+        console.error('Registration error:', err);
+        let message = 'Invalid user data';
+        if (err.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            message = Object.values(err.errors).map(val => val.message).join(', ');
+        } else if (err.code === 11000) {
+            message = 'Email already exists';
+        }
+        res.status(400).json({ success: false, msg: message });
     }
 };
-
 // @desc    Login User
 // @route   POST /api/v1/auth/login
 // @access  Public

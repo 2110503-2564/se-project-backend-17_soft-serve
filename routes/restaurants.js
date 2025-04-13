@@ -1,10 +1,12 @@
 const express = require('express');
-const {getRestaurants, getRestaurant, createRestaurant, updateRestaurant, deleteRestaurant} = require('../controllers/restaurants');
+const {getRestaurants, getRestaurant, createRestaurant, updateRestaurant, 
+    deleteRestaurant,createRestaurantForRestaurantManager,deleteRestaurantOnUserFailure} = require('../controllers/restaurants');
 const {protect, authorize} = require('../middleware/auth');
 // Include other resource routers
 const reservationRouter = require('./reservations');
 const reviewRouter = require('./reviews');
-
+const systemAuthMiddleware = require('../middleware/systemauth');
+    
 const logAdminAction = require('../middleware/logAdminAction');
 
 const router = express.Router();
@@ -188,5 +190,19 @@ router.route('/:id').get(getRestaurant)
  *       404:
  *         description: Restaurant not found
  */
-
+router.route('/create').post(createRestaurantForRestaurantManager);
+router.delete('/system/:id', systemAuthMiddleware, async (req, res) => {
+    try {
+      const result = await deleteRestaurantOnUserFailure(req.params.id);
+      
+      if (result.success) {
+        return res.status(200).json({ success: true, message: result.message });
+      } else {
+        return res.status(400).json({ success: false, message: result.message });
+      }
+    } catch (error) {
+      console.error('System cleanup error:', error);
+      return res.status(500).json({ success: false, message: 'Server error during cleanup' });
+    }
+});
 module.exports = router;
