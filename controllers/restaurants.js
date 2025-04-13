@@ -1,8 +1,9 @@
 const Restaurant = require('../models/Restaurant');
 const Reservation = require('../models/Reservation');
-
+const Notification = require('../models/Notification');
 const AdminLog = require('../models/AdminLog');
-
+const Review = require('../models/Review');
+const User = require('../models/User');
 const logAdminAction = async (adminId, action, resource, resourceId) => {
     try {
       await AdminLog.create({
@@ -179,6 +180,9 @@ exports.deleteRestaurant = async (req, res, next) => {
 
         // Cascading delete
         await Reservation.deleteMany({ restaurant: req.params.id });
+        await Review.deleteMany({restaurantId:req.params.id});
+        await Notification.deleteMany({creatorId:req.params.id});
+        await User.deleteOne({restaurant:req.params.id});
         await Restaurant.deleteOne({ _id: req.params.id });
 
         res.status(200).json({ success: true, data: {} });
