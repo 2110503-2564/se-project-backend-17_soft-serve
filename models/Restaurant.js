@@ -70,6 +70,11 @@ const RestaurantSchema = new mongoose.Schema({
         type: String,
         default : "https://drive.google.com/uc?id=1lwTwYL45cFtoBKQvvj0V49Zd8j_PWiyr",
         required: [true, 'Please add an image path']
+    },
+    verified: {
+        type: Boolean,
+        default: false,
+        required: [true, 'Please add a verified status']
     }
 }, {
     toJSON: { virtuals: true },

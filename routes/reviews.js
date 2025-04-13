@@ -1,12 +1,23 @@
 const express = require('express');
-const {  addReview,deleteReview,getReviews,logAdminAction } = require('../controllers/reviews');
+const {
+  addReview,
+  deleteReview,
+  getReviews,
+  logAdminAction, // Not used yet?
+} = require('../controllers/reviews');
+
 const router = express.Router({ mergeParams: true });
+
 const { protect, authorize } = require('../middleware/auth');
 
+// Public for admin, restricted for others
+router
+  .route('/')
+  .get(protect, getReviews) // Get all reviews or by restaurantId
+  .post(protect, addReview); // User/Manager adds review
 
-
-router.route('/').get(protect, getReviews).post(protect, addReview);
-router.route('/:id').delete(protect,authorize('admin'), deleteReview);
-
+router
+  .route('/:id')
+  .delete(protect, authorize('admin'), deleteReview); // Only admin can delete
 
 module.exports = router;

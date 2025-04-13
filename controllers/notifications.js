@@ -14,7 +14,7 @@ exports.createNotification = async (req, res, next) => {
                 error: 'targetAudience is required for admin'
             });
         }
-    }else if(req.user.role == 'restaurantManger'){
+    }else if(req.user.role == 'restaurantManager'){
         targetAudience = 'Customers';
     }else{
         return res.status(400).json({
@@ -54,7 +54,7 @@ exports.getNotifications = async (req, res, next) => {
     if(req.user.role == 'admin'){
         // Admin can see all notifications
         query = Notification.find({});
-    }else if(req.user.role == 'restaurantManger'){
+    }else if(req.user.role == 'restaurantManager'){
         // Restaurant manager can see notifications related to their restaurant
         query = Notification.find({ creatorId: req.user._id });
     }else{

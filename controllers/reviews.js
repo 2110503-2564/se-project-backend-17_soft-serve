@@ -16,48 +16,78 @@ const logAdminAction = async (adminId, action, resource, resourceId) => {
     }
 };
 
-// @desc    Get all reviews (or by restaurantId)
-// @route   GET /api/v1/reviews OR /api/v1/restaurants/:restaurantId/reviews
-// @access  Public for admin, private for users (shows only their reviews)
+// @desc    Get all reviews
+//          - Admin: Can view all reviews, or reviews for a specific restaurant (if restaurantId is in params)
+//          - Restaurant Manager: Can view reviews for their assigned restaurant only
+//          - User: Can view their own reviews, or reviews for a specific restaurant (if restaurantId is in params)
+// @route   GET /api/v1/reviews
+//          GET /api/v1/restaurants/:restaurantId/reviews
+// @access  Admin (public), Restaurant Manager & User (private)
+
 exports.getReviews = async (req, res, next) => {
-    let query;
-
-    // If not admin, return only reviews created by the current user
-    if (req.user.role !== 'admin') {
-        query = Review.find({ customerId: req.user.id }).populate({
-            path: 'restaurantId',
-            select: 'name province tel imgPath' // restaurant preview info
-        });
-    } else {
-        // If admin and restaurantId is passed in URL, filter reviews by that restaurant
-        if (req.params.restaurantId) {
-            console.log('Fetching reviews for restaurant:', req.params.restaurantId);
-            query = Review.find({ restaurantId: req.params.restaurantId }).populate({
-                path: "restaurantId",
-                select: 'name province tel imgPath',
-            });
-        } else {
-            // Otherwise get all reviews
-            query = Review.find().populate({
-                path: 'restaurantId',
-                select: 'name province tel imgPath'
-            });
-        }
-    }
-
     try {
-        const reviews = await query;
-
-        res.status(200).json({
-            success: true,
-            count: reviews.length,
-            data: reviews
+      let query;
+  
+      const { role, id: userId, restaurant: managerRestaurant } = req.user;
+      const paramRestaurantId = req.params.restaurantId;
+  
+      if (role === 'admin') {
+        // Admin: all reviews, or filter by restaurantId if provided
+        query = paramRestaurantId
+          ? Review.find({ restaurantId: paramRestaurantId })
+          : Review.find();
+      } else if (role === 'restaurantManager') {
+        // Restaurant Manager: only for their restaurant
+        if (!managerRestaurant) {
+          return res.status(403).json({
+            success: false,
+            message: 'No restaurant assigned to this manager.'
+          });
+        }
+  
+        // Handle both Object and ID
+        const restaurantId = typeof managerRestaurant === 'object'
+          ? managerRestaurant._id
+          : managerRestaurant;
+  
+        query = Review.find({ restaurantId });
+      } else if (role === 'user') {
+        // User: can see their own OR reviews by restaurantId (from params)
+        if (paramRestaurantId) {
+          query = Review.find({ restaurantId: paramRestaurantId });
+        } else {
+          query = Review.find({ customerId: userId });
+        }
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: 'Unauthorized role.'
         });
+      }
+  
+      // Add restaurant preview info
+      query = query.populate({
+        path: 'restaurantId',
+        select: 'name province tel imgPath'
+      });
+  
+      const reviews = await query;
+  
+      res.status(200).json({
+        success: true,
+        count: reviews.length,
+        data: reviews
+      });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ success: false, message: "Cannot find reviews" });
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Cannot find reviews"
+      });
     }
-};
+  };
+  
+  
 
 // @desc    Create a new review for a restaurant
 // @route   POST /api/v1/restaurants/:restaurantId/reviews
@@ -101,34 +131,39 @@ exports.addReview = async (req, res, next) => {
 
 // @desc    Delete a review by ID
 // @route   DELETE /api/v1/reviews/:id
-// @access  Private (review owner or admin)
+// @access  Private (admin only)
+
 exports.deleteReview = async (req, res, next) => {
     try {
-        const review = await Review.findById(req.params.id);
-
-        if (!review) {
-            return res.status(404).json({
-                success: false,
-                message: `No review found with ID ${req.params.id}`
-            });
-        }
-
-        // Only allow the user who wrote the review OR an admin to delete it
-        if (review.customerId.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
-                success: false,
-                message: `User ${req.user.id} is not authorized to delete this review`
-            });
-        }
-
-        await review.deleteOne();
-
-        res.status(200).json({
-            success: true,
-            data: {} // return empty data to confirm deletion
+      const review = await Review.findById(req.params.id);
+  
+      if (!review) {
+        return res.status(404).json({
+          success: false,
+          message: `No review found with ID ${req.params.id}`,
         });
+      }
+  
+      // Only admin can delete
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: `User ${req.user.id} is not authorized to delete this review`,
+        });
+      }
+  
+      await review.deleteOne();
+  
+      res.status(200).json({
+        success: true,
+        data: {}, // empty response body to confirm deletion
+      });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ success: false, message: "Cannot delete review" });
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: 'Cannot delete review',
+      });
     }
-};
+  };
+  

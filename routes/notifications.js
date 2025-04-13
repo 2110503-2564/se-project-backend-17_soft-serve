@@ -5,7 +5,7 @@ const { protect,authorize } = require('../middleware/auth');
 
 router.route('/')
     .get(protect, authorize('admin', 'restaurantManager', 'user'), getNotifications)
-    .post(protect, authorize('admin','restaurantManger'), createNotification);
+    .post(protect, authorize('admin','restaurantManager'), createNotification);
 
 router.route('/:id')
     .delete(protect, authorize('admin', 'restaurantManager'), deleteNotification);

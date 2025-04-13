@@ -1,16 +1,24 @@
 const User = require('../models/User');
-const { logAdminAction } = require('./restaurants'); 
+const { logAdminAction, deleteRestaurant } = require('./restaurants'); 
 // @desc    Register User
 // @route   POST /api/v1/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
     try {
         let { name, tel, email, password, role, verified, restaurant } = req.body;
-        // Only allow verified and restaurant if role is restaurantManager
-        if (role !== 'restaurantManager') {
+        
+        // Ensure role is provided for restaurantManager registration
+        if (!role && req.path.includes('restaurantManager')) {
+            role = 'restaurantManager';
+        }
+
+        if (role === 'restaurantManager') {
+            verified = verified !== undefined ? verified : false;
+        } else {
             verified = undefined;
             restaurant = undefined;
         }
+
         const user = await User.create({
             name,
             tel,
@@ -21,14 +29,19 @@ exports.register = async (req, res, next) => {
             restaurant
         });
 
-
         sendTokenResponse(user, 200, res);
     } catch (err) {
-        console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message});
+        console.error('Registration error:', err);
+        let message = 'Invalid user data';
+        if (err.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            message = Object.values(err.errors).map(val => val.message).join(', ');
+        } else if (err.code === 11000) {
+            message = 'Email already exists';
+        }
+        res.status(400).json({ success: false, msg: message });
     }
 };
-
 // @desc    Login User
 // @route   POST /api/v1/auth/login
 // @access  Public
@@ -184,29 +197,81 @@ exports.updateMe = async (req, res, next) => {
 // @route   PATCH /api/v1/auth/changepassword
 // @access  Private
 exports.changePassword = async (req, res, next) => {
-    // Not implemented yet
-    // const { currentPassword, newPassword } = req.body;
+    return res.status(403).json({ success: false, msg: 'Feature not yet implemented' });
 
-    // if (!currentPassword || !newPassword) {
-    //     return res.status(400).json({ success: false, msg: 'Please provide current and new password' });
-    // }
+    const { currentPassword, newPassword } = req.body;
 
-    // try {
-    //     const user = await User.findById(req.user.id).select('+password');
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, msg: 'Please provide current and new password' });
+    }
 
-    //     // Check if the current password is correct
-    //     const isMatch = await user.matchPassword(currentPassword);
-    //     if (!isMatch) {
-    //         return res.status(401).json({ success: false, msg: 'Current password is incorrect' });
-    //     }
+    try {
+        const user = await User.findById(req.user.id).select('+password');
 
-    //     // Update the password and save
-    //     user.password = newPassword;
-    //     await user.save(); // Use save() to trigger the pre 'save' hook (hash password)
+        // Check if the current password is correct
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, msg: 'Current password is incorrect' });
+        }
 
-    //     res.status(200).json({ success: true, msg: 'Password updated successfully' });
-    // } catch (err) {
-    //     console.error(err.message);
-    //     res.status(500).json({ success: false, msg: 'Server Error' });
-    // }
+        // Update the password and save
+        user.password = newPassword;
+        await user.save(); // Use save() to trigger the pre 'save' hook (hash password)
+
+        res.status(200).json({ success: true, msg: 'Password updated successfully' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, msg: 'Server Error' });
+    }
+};
+
+// @desc    Verify or reject a user
+// @route   POST /api/v1/auth/verifyuser
+// @access  Private (Admin only)
+exports.verifyUser = async (req, res, next) => {
+    return res.status(403).json({ success: false, msg: 'Feature not yet implemented' });
+
+    const { userId, isApprove } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, msg: 'User not found' });
+        }
+
+        if (user.role !== 'restaurantManager') {
+            return res.status(400).json({ success: false, msg: 'User is not a restaurant manager' });
+        }
+
+        if (user.verified === true) {
+            return res.status(400).json({ success: false, msg: 'User already verified' });
+        }
+
+        if (isApprove === true) {
+            user.verified = true;
+            await user.save();
+
+            await logAdminAction(req.user.id, 'Verify', 'User', userId);
+            return res.status(200).json({ success: true, msg: 'User verified successfully' });
+        } else {
+            const restaurantId = user.restaurant;
+
+            await logAdminAction(req.user.id, 'Reject', 'User', userId);
+
+            // Delete user
+            await User.deleteOne({ _id: userId });
+
+            // Delete restaurant
+            if (restaurantId) {
+                await deleteRestaurant(restaurantId);
+            }
+
+            return res.status(200).json({ success: true, msg: 'User and associated restaurant deleted' });
+        }
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ success: false, msg: 'Server Error' });
+    }
 };
