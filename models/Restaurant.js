@@ -13,6 +13,9 @@ const RestaurantSchema = new mongoose.Schema({
             message: 'Name cannot be empty or contain only spaces'
         }
     },
+    description: {
+        type: String
+    },
     foodType: {
         type: String,
         required: [true, 'Please add a food type']
@@ -64,7 +67,8 @@ const RestaurantSchema = new mongoose.Schema({
     maxReservation: {
         type: Number,
         min: [0, 'Max reservation must be greater than or equal to 0'],
-        default: 0
+        default: 0,
+        required: [true, 'Please add a max reservation']
     },
     imgPath : {
         type: String,
