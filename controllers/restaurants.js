@@ -162,9 +162,20 @@ exports.updateRestaurant = async (req, res, next) => {
                     msg: 'You are not authorized to update this restaurant'
                 });
             }
+
+            if(!req.user.verified){
+                return res.status(403).json({
+                    success: false,
+                    msg: 'Restaurant manager not verified'
+                });
+            }
         }
 
-        const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, {
+        // Exclude the 'verified' field from being updated
+        const updateData = { ...req.body };
+        delete updateData.verified;
+
+        const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         });
@@ -175,7 +186,7 @@ exports.updateRestaurant = async (req, res, next) => {
 
         if (req.user.role === 'admin') {
             await logAdminAction(req.user.id, 'Update', 'Restaurant', req.params.id);
-          }
+        }
 
         res.status(200).json({ success: true, data: restaurant });
     } catch (err) {
