@@ -69,6 +69,9 @@ exports.getReviews = async (req, res, next) => {
       query = query.populate({
         path: 'restaurantId',
         select: 'name province tel imgPath'
+      }).populate({
+        path: 'customerId',
+        select: 'name'
       });
   
       const reviews = await query;
