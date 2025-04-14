@@ -11,8 +11,7 @@ const NotificationSchema = new mongoose.Schema({
     },
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      refPath: 'createdBy' 
+      required: true
     },
     createdBy: {
       type: String,
