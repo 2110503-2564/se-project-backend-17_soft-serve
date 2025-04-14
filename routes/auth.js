@@ -30,7 +30,13 @@ const AdminLog = require('../models/AdminLog');
 *           description: Telephone number of user
 *         role:
 *           type: string
-*           description: Role of user (admin or user), default is user
+*           description: Role of user (admin, user, or restaurantManager), default is user
+*         verified:
+*           type: boolean
+*           description: Whether the user is verified (default is false)
+*         restaurant:
+*           type: string
+*           description: Restaurant ID if the user is a restaurantManager
 *         password:
 *           type: string
 *           description: Password of user 
@@ -139,14 +145,139 @@ router.get('/logout', protect, logout);
 *       500:
 *         description: Some server error
 */
+
+/**
+ * @swagger
+ * /auth/me:
+ *   patch:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Update my profile
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               tel:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       500:
+ *         description: Server error
+ */
 router.route('/me')
                 .get(protect, getMe)
                 .patch('/me', protect, updateMe);
 
+/**
+ * @swagger
+ * /auth/changepassword:
+ *   patch:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Change password of current user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Invalid old password
+ *       500:
+ *         description: Server error
+ */
 router.patch('/changepassword', protect, changePassword);
                 
+/**
+ * @swagger
+ * /auth/allusers:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Get all users (admin only)
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: List of all users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       403:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
 router.get('/allusers', protect, authorize('admin'), getAllUsers);
+
+/**
+ * @swagger
+ * /auth/verifyuser:
+ *   post:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Verify a user account (admin only)
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User verified successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.post('/verifyuser', protect, authorize('admin'), verifyUser);
+
+/**
+ * @swagger
+ * /auth/deluser/{id}:
+ *   delete:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Delete a user (admin only)
+ *     tags: [Authentication]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to delete
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
 router.delete('/deluser/:id', protect, authorize('admin'), deleteUser);
 
 // Admin logs route
