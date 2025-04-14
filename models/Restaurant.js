@@ -70,6 +70,20 @@ const RestaurantSchema = new mongoose.Schema({
         default: 0,
         required: [true, 'Please add a max reservation']
     },
+    ratingrating: {
+        type: Number,
+        min: 0,
+        max: 5,
+        required: true,
+        default: 0,
+        set: v => (Math.round(v * 10) / 10).toFixed(1)
+    },
+    reviewCount: {
+        type: Number,
+        default: 0,
+        min : 0,
+        required : true
+    },
     imgPath : {
         type: String,
         default : "https://drive.google.com/uc?id=1lwTwYL45cFtoBKQvvj0V49Zd8j_PWiyr",
@@ -92,5 +106,27 @@ RestaurantSchema.virtual('reservations', {
     foreignField: 'restaurant',
     justOne: false
 });
+
+// Static method to update rating and review count
+RestaurantSchema.statics.updateRatingAndCount = async function (restaurantId) {
+    const Review = require('./Review');
+
+    const reviews = await Review.find({ restaurantId });
+
+    if (reviews.length === 0) {
+        return await this.findByIdAndUpdate(restaurantId, {
+            ratingrating: 0,
+            reviewCount: 0
+        });
+    }
+
+    const reviewCount = reviews.length;
+    const avgRating = reviews.reduce((acc, r) => acc + parseFloat(r.rating), 0) / reviewCount;
+
+    return await this.findByIdAndUpdate(restaurantId, {
+        ratingrating: parseFloat(avgRating.toFixed(1)),
+        reviewCount
+    });
+};
 
 module.exports = mongoose.model('Restaurant', RestaurantSchema);

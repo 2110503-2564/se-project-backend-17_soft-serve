@@ -126,6 +126,9 @@ exports.addReview = async (req, res, next) => {
 
         const savedReview = await review.save();
 
+        // Update the restaurant's rating and review count
+        await Restaurant.updateRatingAndCount(req.params.restaurantId);
+
         res.status(201).json({
             success: true,
             data: savedReview
@@ -161,6 +164,9 @@ exports.deleteReview = async (req, res, next) => {
           message: `User ${req.user.id} is not authorized to delete this review`,
         });
       }
+
+      // Update the restaurant's rating and review count
+      await Restaurant.updateRatingAndCount(req.params.restaurantId);
   
       await review.deleteOne();
   
