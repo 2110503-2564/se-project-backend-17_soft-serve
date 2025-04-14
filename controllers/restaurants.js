@@ -28,10 +28,6 @@ exports.getRestaurants = async (req, res, next) => {
 
     // Copy req.query
     const reqQuery = { ...req.query };
-    
-    if(req.user.role !== 'admin'){
-        reqQuery.verified = true;
-    }
 
     // Fields to exclude
     const removeFields = ['select', 'sort', 'page', 'limit'];
