@@ -28,7 +28,6 @@ exports.getRestaurants = async (req, res, next) => {
 
     // Copy req.query
     const reqQuery = { ...req.query };
-    reqQuery.verified = true; // Ensure only verified restaurants are fetched
 
     // Fields to exclude
     const removeFields = ['select', 'sort', 'page', 'limit'];
@@ -36,7 +35,7 @@ exports.getRestaurants = async (req, res, next) => {
     // Loop over remove fields and delete them from reqQuery
     removeFields.forEach(param => delete reqQuery[param]);
 
-    let queryStr = JSON.stringify(reqQuery);
+    let queryStr = JSON.stringify(req.query);
     // Create operators ($gt,$gte,$lt,$lte)
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
