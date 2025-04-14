@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Review = require('../models/Review');
 const Restaurant = require('../models/Restaurant');
 const Reservation = require('../models/Reservation');
 const Notification = require('../models/Notification');
@@ -173,7 +174,7 @@ exports.deleteUser = async (req, res, next) => {
 
             // Delete all related data
             await Reservation.deleteMany({ restaurant: restaurantId });
-            await Review.deleteMany({ restaurantId });
+            await Review.deleteMany({ restaurantId: restaurantId });
             await Notification.deleteMany({ creatorId: restaurantId });
             await Restaurant.deleteOne({ _id: restaurantId });
         }
