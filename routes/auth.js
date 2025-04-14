@@ -116,7 +116,7 @@ router.post('/login', login);
 /**
  * @swagger
  * /api/v1/auth/logout:
- *   get:
+ *   post:
  *     summary: Log out the current user
  *     tags: [Authentication]
  *     security:
@@ -125,7 +125,7 @@ router.post('/login', login);
  *       200:
  *         description: Logged out successfully
  */
-router.get('/logout', protect, logout);
+router.post('/logout', protect, logout);
 
 /**
 * @swagger
@@ -173,7 +173,7 @@ router.get('/logout', protect, logout);
  */
 router.route('/me')
                 .get(protect, getMe)
-                .patch('/me', protect, updateMe);
+                .patch(protect, updateMe);
 
 /**
  * @swagger
