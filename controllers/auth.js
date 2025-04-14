@@ -275,3 +275,22 @@ exports.verifyUser = async (req, res, next) => {
         res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
+
+// @desc    Get all users for admin
+// @route   GET /api/v1/auth/allusers
+// @access  Private
+exports.getAllUsers = async (req, res, next) => {
+    try {
+        const users = await User.find({}).select('-password -__v');
+        res.status(200).json({
+            success: true,
+            count: users.length,
+            data: users,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+        });
+    }
+}

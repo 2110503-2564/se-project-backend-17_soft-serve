@@ -1,6 +1,6 @@
 const express = require('express');
 const { register, login, logout, getMe,
-        deleteUser, updateMe, changePassword, verifyUser } = require('../controllers/auth');
+        deleteUser, updateMe, changePassword, verifyUser, getAllUsers} = require('../controllers/auth');
 const {protect,authorize} = require('../middleware/auth');
 
 const router = express.Router();
@@ -139,15 +139,20 @@ router.get('/logout', protect, logout);
 *       500:
 *         description: Some server error
 */
-router.get('/me', protect, getMe);
+router.route('/me')
+                .get(protect, getMe)
+                .patch('/me', protect, updateMe);
 
+router.patch('/changepassword', protect, changePassword);
+                
+router.get('/allusers', protect, authorize('admin'), getAllUsers);
+router.post('/verifyuser', protect, authorize('admin'), verifyUser);
+router.delete('/deluser/:id', protect, authorize('admin'), deleteUser);
+
+// Admin logs route
 router.get('/admin/logs', protect, authorize('admin'), async (req, res) => {
     const logs = await AdminLog.find().populate('adminId', 'name email').sort({ timestamp: -1 });
     res.status(200).json({ success: true, data: logs });
 });
 
-router.route('/deluser/:id').delete(protect,authorize('admin'),deleteUser);
-router.patch('/updateuser', protect, updateMe);
-router.patch('/changepassword', protect, changePassword);
-router.post('/verifyuser', protect, authorize('admin'), verifyUser);
 module.exports = router;
