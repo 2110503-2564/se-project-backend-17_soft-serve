@@ -13,8 +13,8 @@ const { protect, authorize } = require('../middleware/auth');
 // Public for admin, restricted for others
 router
   .route('/')
-  .get(protect, getReviews) // Get all reviews or by restaurantId
-  .post(protect, addReview); // User/Manager adds review
+  .get(protect,authorize('admin', 'restaurantManager', 'user'), getReviews) // Get all reviews or by restaurantId
+  .post(protect,authorize('admin', 'user'), addReview); // User/Manager adds review
 
 router
   .route('/:id')
