@@ -15,6 +15,13 @@ exports.createNotification = async (req, res, next) => {
             });
         }
     }else if(req.user.role == 'restaurantManager'){
+        if(!(req.user.verified)){
+            return res.status(400).json({
+                success: false,
+                error: 'Restaurant manager must be verified to create notifications'
+            });
+        }
+
         targetAudience = 'Customers';
     }else{
         return res.status(400).json({

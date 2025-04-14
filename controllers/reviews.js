@@ -103,9 +103,16 @@ exports.addReview = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.restaurantId);
 
         if (!restaurant) {
-            return res.status(404).json({
-                success: false,
-                message: `No restaurant found with ID ${req.params.restaurantId}`
+          return res.status(404).json({
+            success: false,
+            message: `No restaurant found with ID ${req.params.restaurantId}`
+          });
+        }
+        
+        if (!restaurant.verified) {
+            return res.status(400).json({
+              success: false,
+              message: 'Cannot add a review to an unverified restaurant.'
             });
         }
 

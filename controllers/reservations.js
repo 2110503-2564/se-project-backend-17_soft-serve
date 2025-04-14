@@ -100,6 +100,13 @@ exports.addReservation = async (req, res, next) => {
             return res.status(404).json({ success: false, msg: `No restaurant with the id of ${req.params.restaurantId}` });
         }
 
+        if (!restaurant.verified) {
+            return res.status(400).json({ 
+                success: false, 
+                msg: 'Cannot add a reservation to an unverified restaurant.' 
+            });
+        }
+
         const openTime = restaurant.openTime;
         const closeTime = restaurant.closeTime;
         const revTime = moment(req.body.revDate).tz('UTC');
