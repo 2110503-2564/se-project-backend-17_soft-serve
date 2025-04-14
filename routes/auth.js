@@ -1,6 +1,6 @@
 const express = require('express');
 const { register, login, logout, getMe,
-        deleteUser, updateMe, changePassword, verifyUser, getAllRestaurantManagers} = require('../controllers/auth');
+        deleteUser, updateMe, changePassword, verifyRestaurant, getAllRestaurantManagers} = require('../controllers/auth');
 const {protect,authorize} = require('../middleware/auth');
 
 const router = express.Router();
@@ -231,11 +231,11 @@ router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantM
 
 /**
  * @swagger
- * /auth/verifyuser:
+ * /auth/verify:
  *   post:
  *     security:
  *       - bearerAuth: []
- *     summary: Verify a user account (admin only)
+ *     summary: Verify a restaurant manager account (admin only)
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -246,6 +246,8 @@ router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantM
  *             properties:
  *               userId:
  *                 type: string
+*               isApprove:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: User verified successfully
@@ -254,7 +256,7 @@ router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantM
  *       500:
  *         description: Server error
  */
-router.post('/verifyuser', protect, authorize('admin'), verifyUser);
+router.post('/verify', protect, authorize('admin'), verifyRestaurant);
 
 /**
  * @swagger

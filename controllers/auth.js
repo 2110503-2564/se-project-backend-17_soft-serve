@@ -246,12 +246,10 @@ exports.changePassword = async (req, res, next) => {
     }
 };
 
-// @desc    Verify or reject a user
-// @route   POST /api/v1/auth/verifyuser
+// @desc    Verify or reject a restaurant
+// @route   POST /api/v1/auth/verify
 // @access  Private (Admin only)
-exports.verifyUser = async (req, res, next) => {
-    return res.status(403).json({ success: false, msg: 'Feature not yet implemented' });
-
+exports.verifyRestaurant = async (req, res, next) => {
     const { userId, isApprove } = req.body;
 
     try {
@@ -269,15 +267,25 @@ exports.verifyUser = async (req, res, next) => {
             return res.status(400).json({ success: false, msg: 'User already verified' });
         }
 
+        const restaurantId = user.restaurant;
+
         if (isApprove === true) {
             user.verified = true;
+
+            // Approve the restaurant too
+            if (restaurantId) {
+                const restaurant = await Restaurant.findById(restaurantId);
+                if (restaurant) {
+                    restaurant.verified = true;
+                    await restaurant.save();
+                }
+            }
+
             await user.save();
 
             await logAdminAction(req.user.id, 'Verify', 'User', userId);
-            return res.status(200).json({ success: true, msg: 'User verified successfully' });
+            return res.status(200).json({ success: true, msg: 'User and restaurant verified successfully' });
         } else {
-            const restaurantId = user.restaurant;
-
             await logAdminAction(req.user.id, 'Reject', 'User', userId);
 
             // Delete user
@@ -285,7 +293,7 @@ exports.verifyUser = async (req, res, next) => {
 
             // Delete restaurant
             if (restaurantId) {
-                await deleteRestaurant(restaurantId);
+                await Restaurant.deleteOne({ _id: restaurantId });
             }
 
             return res.status(200).json({ success: true, msg: 'User and associated restaurant deleted' });
@@ -296,6 +304,7 @@ exports.verifyUser = async (req, res, next) => {
         res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
+
 
 // @desc    Get all restaurant managers for admin
 // @route   GET /api/v1/auth/restaurantmanagers
