@@ -1,4 +1,7 @@
 const User = require('../models/User');
+const Restaurant = require('../models/Restaurant');
+const Reservation = require('../models/Reservation');
+const Notification = require('../models/Notification');
 const { logAdminAction, deleteRestaurant } = require('./restaurants'); 
 // @desc    Register User
 // @route   POST /api/v1/auth/register
@@ -127,14 +130,12 @@ exports.getMe = async (req, res, next) => {
     }
 };
 
-
 // @desc    Delete single user
 // @route   DEL /api/v1/auth/deluser/:id
 // @access  Private
 exports.deleteUser = async (req, res, next) => {
     try {
         const targetUser = await User.findById(req.params.id);
-        console.log('User Role:', req.user?.role);
 
         if (!targetUser) {
             return res.status(404).json({ success: false, msg: 'User not found' });
@@ -147,27 +148,46 @@ exports.deleteUser = async (req, res, next) => {
             });
         }
 
-        if (req.user.id === targetUser.id ) {
+        if (req.user.id === targetUser.id) {
             return res.status(400).json({
               success: false,
               msg: 'Cannot delete yourself'
             });
         }
 
-        if (req.user.role === 'admin'){
-            
-            await  logAdminAction(req.user.id , 'Delete' , 'User' , req.params.id);
+        // Only allow deleting 'user' or 'restaurantManager'
+        if (targetUser.role !== 'user' && targetUser.role !== 'restaurantManager') {
+            return res.status(400).json({
+              success: false,
+              msg: `Cannot delete user with role: ${targetUser.role}`
+              // Cannot delete admin
+            });
         }
 
-        //รอใส่ cascading delete
-         await User.deleteOne({ _id: req.params.id });
+        // Log the admin action
+        await logAdminAction(req.user.id, 'Delete', `${targetUser.role}`, req.params.id);
 
-        res.status(200).json({ success: true, data: 'User delete' });
+        // If the user is a restaurant manager, perform cascading delete
+        if (targetUser.role === 'restaurantManager' && targetUser.restaurant) {
+            const restaurantId = targetUser.restaurant;
+
+            // Delete all related data
+            await Reservation.deleteMany({ restaurant: restaurantId });
+            await Review.deleteMany({ restaurantId });
+            await Notification.deleteMany({ creatorId: restaurantId });
+            await Restaurant.deleteOne({ _id: restaurantId });
+        }
+
+        // Delete the user
+        await User.deleteOne({ _id: req.params.id });
+
+        res.status(200).json({ success: true, data: 'User deleted' });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ success: false, msg: 'Server Error' });
     }
 };
+
 
 // @desc    Update current logged in user
 // @route   PATCH /api/v1/auth/updateuser
