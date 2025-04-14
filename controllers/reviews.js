@@ -27,8 +27,11 @@ const logAdminAction = async (adminId, action, resource, resourceId) => {
 exports.getReviews = async (req, res, next) => {
     try {
       let query;
-  
-      const { role, id: userId, restaurant: managerRestaurant } = req.user;
+      
+
+
+      if(req.user){const { role, id: userId, restaurant: managerRestaurant } = req.user;}
+      else{role = ''}
       const paramRestaurantId = req.params.restaurantId;
   
       if (role === 'admin') {
@@ -59,10 +62,16 @@ exports.getReviews = async (req, res, next) => {
           query = Review.find({ customerId: userId });
         }
       } else {
-        return res.status(403).json({
-          success: false,
-          message: 'Unauthorized role.'
-        });
+        
+        if (paramRestaurantId) {
+          query = Review.find({ restaurantId: paramRestaurantId });
+        }
+        else{
+          return res.status(403).json({
+            success: false,
+            message: 'Unauthorized role.'
+          });
+        }
       }
   
       // Add restaurant preview info
@@ -103,16 +112,9 @@ exports.addReview = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.restaurantId);
 
         if (!restaurant) {
-          return res.status(404).json({
-            success: false,
-            message: `No restaurant found with ID ${req.params.restaurantId}`
-          });
-        }
-        
-        if (!restaurant.verified) {
-            return res.status(400).json({
-              success: false,
-              message: 'Cannot add a review to an unverified restaurant.'
+            return res.status(404).json({
+                success: false,
+                message: `No restaurant found with ID ${req.params.restaurantId}`
             });
         }
 
@@ -125,9 +127,6 @@ exports.addReview = async (req, res, next) => {
         });
 
         const savedReview = await review.save();
-
-        // Update the restaurant's rating and review count
-        await Restaurant.updateRatingAndCount(req.params.restaurantId);
 
         res.status(201).json({
             success: true,
@@ -164,9 +163,6 @@ exports.deleteReview = async (req, res, next) => {
           message: `User ${req.user.id} is not authorized to delete this review`,
         });
       }
-
-      // Update the restaurant's rating and review count
-      await Restaurant.updateRatingAndCount(req.params.restaurantId);
   
       await review.deleteOne();
   
