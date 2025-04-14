@@ -1,6 +1,6 @@
 const express = require('express');
 const { register, login, logout, getMe,
-        deleteUser, updateMe, changePassword, verifyUser, getAllUsers} = require('../controllers/auth');
+        deleteUser, updateMe, changePassword, verifyUser, getAllRestaurantManagers} = require('../controllers/auth');
 const {protect,authorize} = require('../middleware/auth');
 
 const router = express.Router();
@@ -206,7 +206,7 @@ router.patch('/changepassword', protect, changePassword);
                 
 /**
  * @swagger
- * /auth/allusers:
+ * /auth/restaurantmanagers:
  *   get:
  *     security:
  *       - bearerAuth: []
@@ -226,7 +226,7 @@ router.patch('/changepassword', protect, changePassword);
  *       500:
  *         description: Server error
  */
-router.get('/allusers', protect, authorize('admin'), getAllUsers);
+router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantManagers);
 
 /**
  * @swagger
