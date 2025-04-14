@@ -13,7 +13,7 @@ const { protect, authorize } = require('../middleware/auth');
 // Public for admin, restricted for others
 router.route('/')
   .get(protect,authorize('admin', 'restaurantManager', 'user'), getReviews) // Get all reviews or by restaurantId
-  .post(protect,authorize('admin', 'user'), addReview); // User/Manager adds review
+  .post(protect,authorize('user'), addReview); // User adds review
 
 router.route('/:id')
   .delete(protect, authorize('admin'), deleteReview); // Only admin can delete
@@ -100,7 +100,7 @@ router.route('/:id')
  *   post:
  *     security:
  *       - bearerAuth: []
- *     summary: Create a new review for a restaurant (admin, user)
+ *     summary: Create a new review for a restaurant
  *     tags: [Reviews]
  *     parameters:
  *       - in: path
