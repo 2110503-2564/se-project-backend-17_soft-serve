@@ -23,90 +23,84 @@ const logAdminAction = async (adminId, action, resource, resourceId) => {
 // @route   GET /api/v1/reviews
 //          GET /api/v1/restaurants/:restaurantId/reviews
 // @access  Admin (public), Restaurant Manager & User (private)
-
 exports.getReviews = async (req, res, next) => {
     try {
-      let query;
-      
+        let query;
 
-
-      if(req.user){const { role, id: userId, restaurant: managerRestaurant } = req.user;}
-      else{role = ''}
-      const paramRestaurantId = req.params.restaurantId;
-  
-      if (role === 'admin') {
-        // Admin: all reviews, or filter by restaurantId if provided
-        query = paramRestaurantId
-          ? Review.find({ restaurantId: paramRestaurantId })
-          : Review.find();
-      } else if (role === 'restaurantManager') {
-        // Restaurant Manager: only for their restaurant
-        if (!managerRestaurant) {
-          return res.status(403).json({
-            success: false,
-            message: 'No restaurant assigned to this manager.'
-          });
-        }
-  
-        // Handle both Object and ID
-        const restaurantId = typeof managerRestaurant === 'object'
-          ? managerRestaurant._id
-          : managerRestaurant;
-  
-        query = Review.find({ restaurantId });
-      } else if (role === 'user') {
-        // User: can see their own OR reviews by restaurantId (from params)
-        if (paramRestaurantId) {
-          query = Review.find({ restaurantId: paramRestaurantId });
+        if (req.user) {
+            const { role, id: userId, restaurant: managerRestaurant } = req.user;
         } else {
-          query = Review.find({ customerId: userId });
+            role = '';
         }
-      } else {
-        
-        if (paramRestaurantId) {
-          query = Review.find({ restaurantId: paramRestaurantId });
+        const paramRestaurantId = req.params.restaurantId;
+
+        if (role === 'admin') {
+            // Admin: all reviews, or filter by restaurantId if provided
+            query = paramRestaurantId
+                ? Review.find({ restaurantId: paramRestaurantId })
+                : Review.find();
+        } else if (role === 'restaurantManager') {
+            // Restaurant Manager: only for their restaurant
+            if (!managerRestaurant) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No restaurant assigned to this manager.'
+                });
+            }
+
+            // Handle both Object and ID
+            const restaurantId = typeof managerRestaurant === 'object'
+                ? managerRestaurant._id
+                : managerRestaurant;
+
+            query = Review.find({ restaurantId });
+        } else if (role === 'user') {
+            // User: can see their own OR reviews by restaurantId (from params)
+            if (paramRestaurantId) {
+                query = Review.find({ restaurantId: paramRestaurantId });
+            } else {
+                query = Review.find({ customerId: userId });
+            }
+        } else {
+            if (paramRestaurantId) {
+                query = Review.find({ restaurantId: paramRestaurantId });
+            } else {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Unauthorized role.'
+                });
+            }
         }
-        else{
-          return res.status(403).json({
-            success: false,
-            message: 'Unauthorized role.'
-          });
-        }
-      }
-  
-      // Add restaurant preview info
-      query = query.populate({
-        path: 'restaurantId',
-        select: 'name province tel imgPath'
-      }).populate({
-        path: 'customerId',
-        select: 'name'
-      });
-  
-      const reviews = await query;
-  
-      res.status(200).json({
-        success: true,
-        count: reviews.length,
-        data: reviews
-      });
+
+        // Add restaurant preview info
+        query = query.populate({
+            path: 'restaurantId',
+            select: 'name province tel imgPath'
+        }).populate({
+            path: 'customerId',
+            select: 'name'
+        });
+
+        const reviews = await query;
+
+        res.status(200).json({
+            success: true,
+            count: reviews.length,
+            data: reviews
+        });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        success: false,
-        message: "Cannot find reviews"
-      });
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Cannot find reviews"
+        });
     }
-  };
-  
-  
+};
 
 // @desc    Create a new review for a restaurant
 // @route   POST /api/v1/restaurants/:restaurantId/reviews
 // @access  Private (user or admin)
 exports.addReview = async (req, res, next) => {
-    console.log('addReview controller is called');
-
     try {
         // Check if the restaurant exists
         const restaurant = await Restaurant.findById(req.params.restaurantId);
@@ -128,6 +122,9 @@ exports.addReview = async (req, res, next) => {
 
         const savedReview = await review.save();
 
+        // Update restaurant rating and review count
+        await Restaurant.updateRatingAndCount(req.params.restaurantId);
+
         res.status(201).json({
             success: true,
             data: savedReview
@@ -144,38 +141,46 @@ exports.addReview = async (req, res, next) => {
 // @desc    Delete a review by ID
 // @route   DELETE /api/v1/reviews/:id
 // @access  Private (admin only)
-
 exports.deleteReview = async (req, res, next) => {
     try {
-      const review = await Review.findById(req.params.id);
-  
-      if (!review) {
-        return res.status(404).json({
-          success: false,
-          message: `No review found with ID ${req.params.id}`,
+        const review = await Review.findById(req.params.id);
+
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: `No review found with ID ${req.params.id}`,
+            });
+        }
+
+        // Only admin can delete
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: `User ${req.user.id} is not authorized to delete this review`,
+            });
+        }
+
+        // Save the restaurantId to update the rating after deletion
+        const restaurantId = review.restaurantId;
+
+        // Delete the review
+        await review.deleteOne();
+
+        // Update restaurant's rating and review count
+        await Restaurant.updateRatingAndCount(restaurantId);
+
+        res.status(200).json({
+            success: true,
+            data: {}, // empty response body to confirm deletion
         });
-      }
-  
-      // Only admin can delete
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: `User ${req.user.id} is not authorized to delete this review`,
-        });
-      }
-  
-      await review.deleteOne();
-  
-      res.status(200).json({
-        success: true,
-        data: {}, // empty response body to confirm deletion
-      });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        success: false,
-        message: 'Cannot delete review',
-      });
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: 'Cannot delete review',
+        });
     }
-  };
-  
+};
+
+
+
