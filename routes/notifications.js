@@ -82,7 +82,7 @@ module.exports = router;
  *                   example: true
  *                 count:
  *                   type: integer
- *                   example: 2
+ *                   example: 1
  *                 data:
  *                   type: array
  *                   items:

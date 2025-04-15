@@ -63,7 +63,13 @@ exports.getNotifications = async (req, res, next) => {
         query = Notification.find({});
     }else if(req.user.role == 'restaurantManager'){
         // Restaurant manager can see notifications related to their restaurant
-        query = Notification.find({ creatorId: req.user._id });
+        query = Notification.find({ 
+            $or: [
+            { creatorId: req.user._id },
+            { targetAudience: 'restaurantManagers' },
+            { targetAudience: 'All' }
+            ]
+        });
     }else{
         // User can see their own notifications
         try{
@@ -80,11 +86,11 @@ exports.getNotifications = async (req, res, next) => {
                 
                 $or:[
                     {
-                        targetAudience: 'Customers',  // Not finished
+                        targetAudience: 'Customers',
                         creatorId : {$in: restaurantIDs}
                     },
                     {
-                        createdBy : 'admin'
+                        targetAudience : 'All'
                     }
                 ]
             });

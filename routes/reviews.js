@@ -72,7 +72,7 @@ router.route('/:id')
 
 /**
  * @swagger
- * /api/v1/reviews:
+ * /reviews:
  *   get:
  *     security:
  *       - bearerAuth: []
@@ -96,7 +96,7 @@ router.route('/:id')
 
 /**
  * @swagger
- * /api/v1/restaurants/{restaurantId}/reviews:
+ * /restaurants/{restaurantId}/reviews:
  *   post:
  *     security:
  *       - bearerAuth: []
@@ -137,7 +137,7 @@ router.route('/:id')
 
 /**
  * @swagger
- * /api/v1/reviews/{id}:
+ * /reviews/{id}:
  *   delete:
  *     security:
  *       - bearerAuth: []
