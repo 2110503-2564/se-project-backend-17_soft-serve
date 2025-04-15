@@ -8,11 +8,11 @@ const {
 
 const router = express.Router({ mergeParams: true });
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, protect_review } = require('../middleware/auth');
 
 // Public for admin, restricted for others
 router.route('/')
-  .get(protect, getReviews) // Get all reviews or by restaurantId
+  .get(protect_review, getReviews) // Get all reviews or by restaurantId
   .post(protect,authorize('user'), addReview); // User adds review
 
 router.route('/:id')

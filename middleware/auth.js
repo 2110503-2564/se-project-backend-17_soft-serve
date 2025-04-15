@@ -27,6 +27,34 @@ exports.protect = async (req,res,next) => {
     }
 };
 
+exports.protect_review = async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    // If no token, just set req.user to null and move on
+    if (!token || token === 'null') {
+        req.user = null;
+        return next();
+    }
+
+    try {
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded);
+
+        req.user = await User.findById(decoded.id);
+    } catch (err) {
+        console.log(err.stack);
+        req.user = null;
+    }
+
+    next();
+};
+
+
 // Grant access to specific roles
 exports.authorize = (...roles) => {
     return (req,res,next) => {
