@@ -56,6 +56,10 @@ const RestaurantSchema = new mongoose.Schema({
                 // Check that openTime is before closeTime
                 const openTime = this.openTime;
 
+                if (!openTime) {
+                    return true;
+                }
+
                 const [openHour, openMinute] = openTime.split(':').map(Number);
                 const [closeHour, closeMinute] = value.split(':').map(Number);
 
