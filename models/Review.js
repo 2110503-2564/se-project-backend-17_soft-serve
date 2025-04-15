@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ReviewSchema = new mongoose.Schema({
     rating: {
         type: Number,
-        min: 1,
+        min: 0,
         max: 5,
         required: true,
         set: v => (Math.round(v * 10) / 10).toFixed(1)
