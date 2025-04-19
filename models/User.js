@@ -16,7 +16,6 @@ const UserSchema = new mongoose.Schema({
     tel : {
         type : String,
         required : [true,'Please add a telephone number'],
-        unique : true,
         validate: {
             validator: function (v) {
                 return /^[0-9-]+$/.test(v); // check if it contains only digits and hyphens

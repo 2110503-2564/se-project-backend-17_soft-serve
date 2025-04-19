@@ -4,7 +4,6 @@ const RestaurantSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add name'],
-        unique: true,
         maxlength: [50, 'Name cannot be more than 50 characters'],
         validate: {
             validator: function (v) {
