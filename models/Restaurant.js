@@ -40,7 +40,15 @@ const RestaurantSchema = new mongoose.Schema({
         match: [/^\d{5}$/, 'Postal Code must be exactly 5 digits and contain only numbers']
     },
     tel: {
-        type: String
+        type: String,
+        required : [true,'Please add a telephone number'],
+        unique : true,
+        validate: {
+            validator: function (v) {
+                return /^[0-9-]+$/.test(v); // check if it contains only digits and hyphens
+            },
+            message: 'Telephone number must contain digits and hyphens only'
+        }
     },
     openTime: {
         type: String,
