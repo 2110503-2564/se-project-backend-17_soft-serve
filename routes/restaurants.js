@@ -1,6 +1,7 @@
 const express = require('express');
 const {getRestaurants, getRestaurant, createRestaurant, updateRestaurant, 
-    deleteRestaurant,createRestaurantForRestaurantManager,deleteRestaurantOnUserFailure} = require('../controllers/restaurants');
+    deleteRestaurant,createRestaurantForRestaurantManager,deleteRestaurantOnUserFailure,
+    getAvailability} = require('../controllers/restaurants');
 const {protect, authorize} = require('../middleware/auth');
 // Include other resource routers
 const reservationRouter = require('./reservations');
@@ -20,6 +21,8 @@ router.route('/').get(getRestaurants)
 router.route('/:id').get(getRestaurant)
                     .put(protect, authorize('admin', 'restaurantManager'), updateRestaurant)
                     .delete(protect, authorize('admin'), deleteRestaurant);
+
+router.route('/:restaurantId/availability').get(getAvailability);
 
 /**
  * @swagger

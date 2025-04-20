@@ -4,6 +4,8 @@ const Notification = require('../models/Notification');
 const AdminLog = require('../models/AdminLog');
 const Review = require('../models/Review');
 const User = require('../models/User');
+const { ObjectId } = require('mongoose').Types;
+
 const logAdminAction = async (adminId, action, resource, resourceId) => {
     try {
       await AdminLog.create({
@@ -222,6 +224,81 @@ exports.deleteRestaurant = async (req, res, next) => {
         res.status(400).json({ success: false, msg: err.message });
     }
 };
+
+// @desc    Get available reservation slots for a restaurant on a specific date
+// @route   GET /api/v1/restaurants/:restaurantId/availability
+// @access  Public
+exports.getAvailability = async (req, res, next) => {
+    try {
+        const restaurantId = req.params.restaurantId;
+        const dateStr = req.query.date;
+
+        if (!dateStr) {
+            return res.status(400).json({
+                success: false,
+                msg: 'Please provide a reservation date in the query (e.g., ?date=2025-04-20)'
+            });
+        }
+
+        const restaurant = await Restaurant.findById(restaurantId);
+
+        if (!restaurant) {
+            return res.status(404).json({ success: false, msg: 'Restaurant not found' });
+        }
+
+        const revDate = new Date(dateStr);
+        const reservedCount = await getReservedPeopleCount(restaurantId, revDate);
+        const remainingSlots = restaurant.maxReservation - reservedCount;
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                restaurantId: restaurantId,
+                date: dateStr,
+                maxReservation: restaurant.maxReservation,
+                reserved: reservedCount,
+                available: remainingSlots > 0 ? remainingSlots : 0
+            }
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({
+            success: false,
+            msg: 'Failed to fetch availability',
+            error: err.message
+        });
+    }
+};
+
+// Function to get the total number of people reserved for a specific restaurant on a specific date
+const getReservedPeopleCount = async (restaurantId, revDate) => {
+    const startOfDay = new Date(revDate);
+    startOfDay.setHours(0, 0, 0, 0); // Normalize time to start of the day
+
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setHours(23, 59, 59, 999); // End of the day
+
+    const objectIdRestaurantId = new ObjectId(restaurantId);
+
+    // Calculate the total number of people reserved for the given date
+    const totalPeopleReserved = await Reservation.aggregate([
+        {
+            $match: {
+                restaurant: objectIdRestaurantId,
+                revDate: { $gte: startOfDay, $lt: endOfDay }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalPeople: { $sum: "$numberOfPeople" }
+            }
+        }
+    ]);
+
+    return totalPeopleReserved.length > 0 ? totalPeopleReserved[0].totalPeople : 0;
+};
+
 exports.createRestaurantForRestaurantManager = async (req, res, next) => {
     try {
         const restaurant = await Restaurant.create(req.body);

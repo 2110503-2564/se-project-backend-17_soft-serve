@@ -126,6 +126,8 @@ exports.addReservation = async (req, res, next) => {
         // Get the number of people already reserved for the given date
         const revDate = new Date(req.body.revDate);
         const currentReserved = await getReservedPeopleCount(restaurant._id, revDate);
+        console.log(restaurant._id);
+        console.log(currentReserved);
         const requestedPeople = req.body.numberOfPeople;
 
         // Check if the new reservation exceeds max capacity
