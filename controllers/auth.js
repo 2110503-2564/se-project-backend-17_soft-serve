@@ -191,7 +191,7 @@ exports.deleteUser = async (req, res, next) => {
 
 
 // @desc    Update current logged in user
-// @route   PATCH /api/v1/auth/updateuser
+// @route   PATCH /api/v1/auth/me
 // @access  Private
 exports.updateMe = async (req, res, next) => {
     try {
