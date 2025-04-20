@@ -66,7 +66,7 @@ exports.getNotifications = async (req, res, next) => {
         query = Notification.find({ 
             $or: [
             { creatorId: req.user._id },
-            { targetAudience: 'restaurantManagers' },
+            { targetAudience: 'RestaurantManagers' },
             { targetAudience: 'All' }
             ]
         });
