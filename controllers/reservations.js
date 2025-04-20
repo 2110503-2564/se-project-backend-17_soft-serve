@@ -24,13 +24,20 @@ const logAdminAction = async (adminId, action, resource, resourceId) => {
 exports.getReservations = async (req, res, next) => {
     let query;
 
-    if (req.user.role !== 'admin') {
+    if (req.user.role === 'user') {
         // General users can see only their reservations
         query = Reservation.find({ user: req.user.id }).populate({
             path: 'restaurant',
             select: 'name province tel imgPath'
         });
-    } else {
+    } else if(req.user.role === 'restaurantManager') {
+        query = Reservation.find({ restaurant: req.user.restaurant })
+            .populate({
+            path: 'user',
+            select: 'name tel -_id'
+            })
+            .sort({ revDate: -1, createdAt: 1 });
+    }else {
         // Admin can see all reservations
 
         if (req.params.restaurantId) {
