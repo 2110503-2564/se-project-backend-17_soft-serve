@@ -66,7 +66,7 @@ exports.getReservations = async (req, res, next) => {
         });
     } catch (err) {
         // console.log(err.message);
-        res.status(500).json({ success: false, msg: 'Cannot find reservations' });
+        res.status(500).json({ success: false, msg: 'Failed to retrieve reservations. Please try again later.' });
     }
 };
 
@@ -81,7 +81,9 @@ exports.getReservation = async (req, res, next) => {
         });
 
         if (!reservation) {
-            return res.status(404).json({ success: false, msg: `No reservation with the id ${req.params.id}` });
+            console.log(`for debug this is req.id ${req.params.id}`);
+            
+            return res.status(404).json({ success: false, msg: `Reservation not found. Please check the reservation ID.` });
         }
 
         res.status(200).json({
@@ -90,7 +92,7 @@ exports.getReservation = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ success: false, msg: 'Cannot found Reservation' });
+        return res.status(500).json({ success: false, msg: 'Failed to retrieve reservation. Please try again later.' });
     }
 };
 
@@ -104,13 +106,15 @@ exports.addReservation = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.restaurantId);
 
         if (!restaurant) {
-            return res.status(404).json({ success: false, msg: `No restaurant with the id of ${req.params.restaurantId}` });
+            console.log(`req resID is ${req.params.restaurantId}`);
+            
+            return res.status(404).json({ success: false, msg: `Restaurant not found. Please check the restaurant ID.` });
         }
 
         if (!restaurant.verified) {
             return res.status(400).json({ 
                 success: false, 
-                msg: 'Cannot add a reservation to an unverified restaurant.' 
+                msg: 'Cannot make a reservation because the restaurant is not yet verified.' 
             });
         }
 
@@ -184,14 +188,14 @@ exports.addReservation = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err.message);
-        return res.status(500).json({ success: false, msg: 'Cannot create Reservation', error: err.message });    
+        return res.status(500).json({ success: false, msg: 'Failed to create reservation. Please try again later.', error: err.message });    
     }
 };
 
 function isReservationWithinOpeningHours(revTime, openTime, closeTime) {
     // Check if the restaurant is open
     if (!openTime || !closeTime) {
-        throw {status: 400, message: 'The opening hours are not defined'};
+        throw {status: 400, message: 'Restaurant opening hours are not properly set. '};
     }
 
     const [openHour, openMinute] = openTime.split(':').map(Number);
@@ -206,7 +210,7 @@ function isReservationWithinOpeningHours(revTime, openTime, closeTime) {
     const isOpen = rev.isSameOrAfter(open) && rev.isSameOrBefore(close);
 
     if (!isOpen) {
-        throw {status: 400, message: 'Reservations are not available during the restaurant\'s closing hours'};
+        throw {status: 400, message: 'Reservation time must be within the restaurant\'s operating hours.'};
     }
 }
 
@@ -245,13 +249,17 @@ exports.updateReservation = async (req, res, next) => {
         let reservation = await Reservation.findById(req.params.id);
 
         if (!reservation) {
-            return res.status(404).json({ success: false, msg: `No reservation with the id of ${req.params.id}` });
+            console.log(`id is ${req.params.id}`);
+            
+            return res.status(404).json({ success: false, msg: `Reservation not found. Please check the ID and try again.` });
         }
 
         const restaurant = await Restaurant.findById(reservation.restaurant._id);
 
         if (!restaurant) {
-            return res.status(404).json({ success: false, msg: `No restaurant with the id of ${req.params.restaurantId}` });
+            console.log(`id is ${req.params.restaurantId}`);
+            
+            return res.status(404).json({ success: false, msg: `Associated restaurant not found. Please verify the restaurant ID.` });
         }
 
         // Get the number of people already reserved for the given date
@@ -285,7 +293,7 @@ exports.updateReservation = async (req, res, next) => {
         if (req.user.role !== 'admin' && reservationTime - currentTime <= 60 * 60 * 1000) {
             return res.status(400).json({
                 success: false,
-                msg: 'You cannot update the reservation within 1 hour of the scheduled time'
+                msg: 'Reservations cannot be updated within 1 hour of the scheduled time.'
             });
         }
 
@@ -310,7 +318,7 @@ exports.updateReservation = async (req, res, next) => {
                 if (revTime.isBetween(oneHourBefore, oneHourAfter, null, '()') && existingReservation._id.toString() !== req.body.id) {
                     return res.status(400).json({
                         success: false,
-                        msg: 'Please ensure there is at least 1 hour gap between reservations.'
+                        msg: 'There must be at least a 1-hour gap between your reservations.'
                     });
                 }
             }
