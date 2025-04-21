@@ -126,9 +126,25 @@ exports.addReview = async (req, res, next) => {
 
         const savedReview = await review.save();
 
-        // Update restaurant rating and review count
-        await Restaurant.updateRatingAndCount(req.params.restaurantId);
+        // 3. Update star count
+        const rating = req.body.rating; // 1–5
+        restaurant.starCount = restaurant.starCount || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        restaurant.starCount[rating] = (restaurant.starCount[rating] || 0) + 1;
 
+        // 4. Update total review count
+        restaurant.reviewCount = (restaurant.reviewCount || 0) + 1;
+
+        // 5. Recalculate average rating
+        const reviews = await Review.find({ restaurantId: restaurant._id });
+        const avgRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+        restaurant.ratingrating = avgRating;
+
+        // 6. Save restaurant
+        await restaurant.save();
+        
+        // Update restaurant rating and review count
+        //await Restaurant.updateRatingAndCount(req.params.restaurantId);
+        
         res.status(201).json({
             success: true,
             data: savedReview
