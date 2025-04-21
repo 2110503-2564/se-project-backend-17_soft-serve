@@ -136,7 +136,7 @@ exports.getNotifications = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 // @desc    Delete single notifications

@@ -95,7 +95,7 @@ exports.getRestaurants = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 
@@ -107,11 +107,11 @@ exports.getRestaurant = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.id);
 
         if (!restaurant) {
-            return res.status(404).json({ success: false, msg: 'Restaurant not found with the provided ID' });
+            return res.status(404).json({ success: false, message: 'Restaurant not found with the provided ID' });
         }
 
         if (!restaurant.verified) {
-            return res.status(403).json({ success: false, msg: 'Restaurant not verified' });
+            return res.status(403).json({ success: false, message: 'Restaurant not verified' });
         }
 
         res.status(200).json({ success: true, data: restaurant });
@@ -138,7 +138,7 @@ exports.createRestaurant = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 
@@ -149,7 +149,7 @@ exports.updateRestaurant = async (req, res, next) => {
     try {
         const existing = await Restaurant.findById(req.params.id);
         if (!existing || !existing.verified) {
-            return res.status(403).json({ success: false, msg: 'Restaurant not found or not verified' });
+            return res.status(403).json({ success: false, message: 'Restaurant not found or not verified' });
         }
 
         if (req.user.role === 'restaurantManager') {
@@ -157,14 +157,14 @@ exports.updateRestaurant = async (req, res, next) => {
             if (userRestaurantId !== req.params.id) {
                 return res.status(403).json({
                     success: false,
-                    msg: 'You are not authorized to update this restaurant'
+                    message: 'You are not authorized to update this restaurant'
                 });
             }
 
             if(!req.user.verified){
                 return res.status(403).json({
                     success: false,
-                    msg: 'Restaurant manager not verified'
+                    message: 'Restaurant manager not verified'
                 });
             }
         }
@@ -189,7 +189,7 @@ exports.updateRestaurant = async (req, res, next) => {
         res.status(200).json({ success: true, data: restaurant });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 
@@ -203,7 +203,7 @@ exports.deleteRestaurant = async (req, res, next) => {
         if (!restaurant) {
             return res.status(404).json({
                 success: false,
-                msg: `Restaurant not found with id of ${req.params.id}`
+                message: `Restaurant not found with id of ${req.params.id}`
             });
         }
 
@@ -221,7 +221,7 @@ exports.deleteRestaurant = async (req, res, next) => {
         res.status(200).json({ success: true, data: {} });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 
@@ -236,14 +236,14 @@ exports.getAvailability = async (req, res, next) => {
         if (!dateStr) {
             return res.status(400).json({
                 success: false,
-                msg: 'Please provide a reservation date in the query (e.g., ?date=2025-04-20)'
+                message: 'Please provide a reservation date in the query (e.g., ?date=2025-04-20)'
             });
         }
 
         const restaurant = await Restaurant.findById(restaurantId);
 
         if (!restaurant) {
-            return res.status(404).json({ success: false, msg: 'Restaurant not found' });
+            return res.status(404).json({ success: false, message: 'Restaurant not found' });
         }
 
         const revDate = new Date(dateStr);
@@ -264,7 +264,7 @@ exports.getAvailability = async (req, res, next) => {
         console.error(err.message);
         res.status(500).json({
             success: false,
-            msg: 'Failed to fetch availability',
+            message: 'Failed to fetch availability',
             error: err.message
         });
     }
@@ -309,7 +309,7 @@ exports.createRestaurantForRestaurantManager = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+        res.status(400).json({ success: false, message: err.message });
     }
 };
 exports.deleteRestaurantOnUserFailure = async (restaurantId) => {

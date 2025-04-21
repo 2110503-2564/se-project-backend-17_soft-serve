@@ -43,7 +43,7 @@ exports.register = async (req, res, next) => {
         } else if (err.code === 11000) {
             message = 'Email already exists';
         }
-        res.status(400).json({ success: false, msg: message });
+        res.status(400).json({ success: false, message: message });
     }
 };
 // @desc    Login User
@@ -54,26 +54,26 @@ exports.login = async (req, res, next) => {
 
     // Validate email and password
     if (!email || !password) {
-        return res.status(400).json({ success: false, msg: 'Please provide email and password' });
+        return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
     // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-        return res.status(400).json({ success: false, msg: 'Invalid credentials' });
+        return res.status(400).json({ success: false, message: 'Invalid credentials' });
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-        return res.status(400).json({ success: false, msg: 'Invalid credentials' });
+        return res.status(400).json({ success: false, message: 'Invalid credentials' });
     }
 
     if (user.role == "restaurantManager"){
         if(!user.verified)
-            return res.status(400).json({ success: false, msg: 'not verified' });
+            return res.status(400).json({ success: false, message: 'not verified' });
     }
 
     // Create token
@@ -109,7 +109,7 @@ exports.logout = async (req,res,next) => {
 
     res.status(200).json({
         success: true,
-        msg: 'Logged out successfully'
+        message: 'Logged out successfully'
     });
 };
 
@@ -121,13 +121,13 @@ exports.getMe = async (req, res, next) => {
         const user = await User.findById(req.user.id);
 
         if (!user) {
-            return res.status(404).json({ success: false, msg: 'User not found' });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         res.status(200).json({ success: true, data: user });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
@@ -139,20 +139,20 @@ exports.deleteUser = async (req, res, next) => {
         const targetUser = await User.findById(req.params.id);
 
         if (!targetUser) {
-            return res.status(404).json({ success: false, msg: 'User not found' });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         if (req.user.role !== 'admin') {
             return res.status(403).json({
               success: false,
-              msg: 'Only admins can delete user'
+              message: 'Only admins can delete user'
             });
         }
 
         if (req.user.id === targetUser.id) {
             return res.status(400).json({
               success: false,
-              msg: 'Cannot delete yourself'
+              message: 'Cannot delete yourself'
             });
         }
 
@@ -160,7 +160,7 @@ exports.deleteUser = async (req, res, next) => {
         if (targetUser.role !== 'user' && targetUser.role !== 'restaurantManager') {
             return res.status(400).json({
               success: false,
-              msg: `Cannot delete user with role: ${targetUser.role}`
+              message: `Cannot delete user with role: ${targetUser.role}`
               // Cannot delete admin
             });
         }
@@ -185,7 +185,7 @@ exports.deleteUser = async (req, res, next) => {
         res.status(200).json({ success: true, data: 'User deleted' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
@@ -210,7 +210,7 @@ exports.updateMe = async (req, res, next) => {
         res.status(200).json({ success: true, data: user });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
@@ -218,12 +218,12 @@ exports.updateMe = async (req, res, next) => {
 // @route   PATCH /api/v1/auth/changepassword
 // @access  Private
 exports.changePassword = async (req, res, next) => {
-    return res.status(403).json({ success: false, msg: 'Feature not yet implemented' });
+    return res.status(403).json({ success: false, message: 'Feature not yet implemented' });
 
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-        return res.status(400).json({ success: false, msg: 'Please provide current and new password' });
+        return res.status(400).json({ success: false, message: 'Please provide current and new password' });
     }
 
     try {
@@ -232,17 +232,17 @@ exports.changePassword = async (req, res, next) => {
         // Check if the current password is correct
         const isMatch = await user.matchPassword(currentPassword);
         if (!isMatch) {
-            return res.status(401).json({ success: false, msg: 'Current password is incorrect' });
+            return res.status(401).json({ success: false, message: 'Current password is incorrect' });
         }
 
         // Update the password and save
         user.password = newPassword;
         await user.save(); // Use save() to trigger the pre 'save' hook (hash password)
 
-        res.status(200).json({ success: true, msg: 'Password updated successfully' });
+        res.status(200).json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
@@ -256,15 +256,15 @@ exports.verifyRestaurant = async (req, res, next) => {
         const user = await User.findById(userId);
 
         if (!user) {
-            return res.status(404).json({ success: false, msg: 'User not found' });
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
 
         if (user.role !== 'restaurantManager') {
-            return res.status(400).json({ success: false, msg: 'User is not a restaurant manager' });
+            return res.status(400).json({ success: false, message: 'User is not a restaurant manager' });
         }
 
         if (user.verified === true) {
-            return res.status(400).json({ success: false, msg: 'User already verified' });
+            return res.status(400).json({ success: false, message: 'User already verified' });
         }
 
         const restaurantId = user.restaurant;
@@ -284,7 +284,7 @@ exports.verifyRestaurant = async (req, res, next) => {
             await user.save();
 
             await logAdminAction(req.user.id, 'Verify', 'User', userId);
-            return res.status(200).json({ success: true, msg: 'User and restaurant verified successfully' });
+            return res.status(200).json({ success: true, message: 'User and restaurant verified successfully' });
         } else {
             await logAdminAction(req.user.id, 'Reject', 'User', userId);
 
@@ -296,12 +296,12 @@ exports.verifyRestaurant = async (req, res, next) => {
                 await Restaurant.deleteOne({ _id: restaurantId });
             }
 
-            return res.status(200).json({ success: true, msg: 'User and associated restaurant deleted' });
+            return res.status(200).json({ success: true, message: 'User and associated restaurant deleted' });
         }
 
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Server Error' });
+        res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
 
