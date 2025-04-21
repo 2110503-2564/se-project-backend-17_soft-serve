@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {createNotification, getNotifications, deleteNotification} = require('../controllers/notifications');
+const {createNotification, getNotifications, deleteNotification, getNotifications_test} = require('../controllers/notifications');
 const { protect,authorize } = require('../middleware/auth');
 
 router.route('/')
