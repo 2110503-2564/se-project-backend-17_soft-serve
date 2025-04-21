@@ -1,6 +1,7 @@
 const Reservation = require('../models/Reservation');
 const Restaurant = require('../models/Restaurant');
 const AdminLog = require('../models/AdminLog');
+const Notification = require('../models/Notification');
 
 const moment = require('moment-timezone');
 
@@ -66,7 +67,7 @@ exports.getReservations = async (req, res, next) => {
         });
     } catch (err) {
         // console.log(err.message);
-        res.status(500).json({ success: false, msg: 'Failed to retrieve reservations. Please try again later.' });
+        res.status(500).json({ success: false, message: 'Failed to retrieve reservations. Please try again later.' });
     }
 };
 
@@ -83,7 +84,7 @@ exports.getReservation = async (req, res, next) => {
         if (!reservation) {
             console.log(`for debug this is req.id ${req.params.id}`);
             
-            return res.status(404).json({ success: false, msg: `Reservation not found. Please check the reservation ID.` });
+            return res.status(404).json({ success: false, message: `Reservation not found. Please check the reservation ID.` });
         }
 
         res.status(200).json({
@@ -92,7 +93,7 @@ exports.getReservation = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ success: false, msg: 'Failed to retrieve reservation. Please try again later.' });
+        return res.status(500).json({ success: false, message: 'Failed to retrieve reservation. Please try again later.' });
     }
 };
 
@@ -108,13 +109,13 @@ exports.addReservation = async (req, res, next) => {
         if (!restaurant) {
             console.log(`req resID is ${req.params.restaurantId}`);
             
-            return res.status(404).json({ success: false, msg: `Restaurant not found. Please check the restaurant ID.` });
+            return res.status(404).json({ success: false, message: `Restaurant not found. Please check the restaurant ID.` });
         }
 
         if (!restaurant.verified) {
             return res.status(400).json({ 
                 success: false, 
-                msg: 'Cannot make a reservation because the restaurant is not yet verified.' 
+                message: 'Cannot make a reservation because the restaurant is not yet verified.' 
             });
         }
 
@@ -124,7 +125,7 @@ exports.addReservation = async (req, res, next) => {
         try {
             isReservationWithinOpeningHours(revTime, openTime, closeTime);
         } catch (error) {
-            return res.status(error.status).json({ success: false, msg: error.message });
+            return res.status(error.status).json({ success: false, message: error.message });
         }
 
         // Get the number of people already reserved for the given date
@@ -138,7 +139,7 @@ exports.addReservation = async (req, res, next) => {
         if (currentReserved + requestedPeople > restaurant.maxReservation) {
             return res.status(400).json({
                 success: false,
-                msg: `Not enough reservation slots available. Only ${restaurant.maxReservation - currentReserved} slots left for ${revDate.toDateString()}`
+                message: `Not enough reservation slots available. Only ${restaurant.maxReservation - currentReserved} slots left for ${revDate.toDateString()}`
             });
         }
 
@@ -158,7 +159,7 @@ exports.addReservation = async (req, res, next) => {
         if (existedReservations.length >= 3 && req.user.role !== 'admin') {
             return res.status(400).json({
                 success: false,
-                msg: `The user with id ${req.user.id} has already made 3 reservations on ${revDate.toDateString()}`
+                message: `The user with id ${req.user.id} has already made 3 reservations on ${revDate.toDateString()}`
             });
         }
 
@@ -174,7 +175,7 @@ exports.addReservation = async (req, res, next) => {
             if (revTime.isBetween(oneHourBefore, oneHourAfter, null, '()') && existingReservation._id.toString() !== req.body.id) {
                 return res.status(400).json({
                     success: false,
-                    msg: 'Please ensure there is at least 1 hour gap between reservations.'
+                    message: 'Please ensure there is at least 1 hour gap between reservations.'
                 });
             }
         }
@@ -182,13 +183,22 @@ exports.addReservation = async (req, res, next) => {
         // Create reservation
         const reservation = await Reservation.create(req.body);
 
+        // Add reminder notification
+        const reminderNoticification = await Notification.create({
+            title: 'Reservation Reminder',
+            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
+            createdBy: 'system',
+            targetAudience: reservation._id,
+            createdAt: new Date()
+        });
+
         res.status(200).json({
             success: true,
             data: reservation
         });
     } catch (err) {
         console.error(err.message);
-        return res.status(500).json({ success: false, msg: 'Failed to create reservation. Please try again later.', error: err.message });    
+        return res.status(500).json({ success: false, message: 'Failed to create reservation. Please try again later.', error: err.message });    
     }
 };
 
@@ -251,7 +261,7 @@ exports.updateReservation = async (req, res, next) => {
         if (!reservation) {
             console.log(`id is ${req.params.id}`);
             
-            return res.status(404).json({ success: false, msg: `Reservation not found. Please check the ID and try again.` });
+            return res.status(404).json({ success: false, message: `Reservation not found. Please check the ID and try again.` });
         }
 
         const restaurant = await Restaurant.findById(reservation.restaurant._id);
@@ -259,7 +269,7 @@ exports.updateReservation = async (req, res, next) => {
         if (!restaurant) {
             console.log(`id is ${req.params.restaurantId}`);
             
-            return res.status(404).json({ success: false, msg: `Associated restaurant not found. Please verify the restaurant ID.` });
+            return res.status(404).json({ success: false, message: `Associated restaurant not found. Please verify the restaurant ID.` });
         }
 
         // Get the number of people already reserved for the given date
@@ -272,7 +282,7 @@ exports.updateReservation = async (req, res, next) => {
         if (currentReserved + requestedPeople > restaurant.maxReservation) {
             return res.status(400).json({
                 success: false,
-                msg: `Not enough reservation slots available. Only ${restaurant.maxReservation - currentReserved} slots left for ${revDate.toDateString()}`
+                message: `Not enough reservation slots available. Only ${restaurant.maxReservation - currentReserved} slots left for ${revDate.toDateString()}`
             });
         }
 
@@ -282,7 +292,7 @@ exports.updateReservation = async (req, res, next) => {
         try {
             isReservationWithinOpeningHours(revTime, openTime, closeTime);
         } catch (error) {
-            return res.status(error.status).json({ success: false, msg: error.message });
+            return res.status(error.status).json({ success: false, message: error.message });
         }
 
         // Convert reservation time to Date object
@@ -293,14 +303,14 @@ exports.updateReservation = async (req, res, next) => {
         if (req.user.role !== 'admin' && reservationTime - currentTime <= 60 * 60 * 1000) {
             return res.status(400).json({
                 success: false,
-                msg: 'Reservations cannot be updated within 1 hour of the scheduled time.'
+                message: 'Reservations cannot be updated within 1 hour of the scheduled time.'
             });
         }
 
         if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success: false,
-                msg: `User ${req.user.id} is not authorized to update this reservation`
+                message: `User ${req.user.id} is not authorized to update this reservation`
             });
         }
 
@@ -318,7 +328,7 @@ exports.updateReservation = async (req, res, next) => {
                 if (revTime.isBetween(oneHourBefore, oneHourAfter, null, '()') && existingReservation._id.toString() !== req.body.id) {
                     return res.status(400).json({
                         success: false,
-                        msg: 'There must be at least a 1-hour gap between your reservations.'
+                        message: 'There must be at least a 1-hour gap between your reservations.'
                     });
                 }
             }
@@ -334,6 +344,12 @@ exports.updateReservation = async (req, res, next) => {
             runValidators: true
         });
 
+        const notification = await Notification.findOne({ targetAudience: reservation._id });
+        if (notification) {
+            notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`;
+            await notification.save();
+        }
+
         res.status(200).json({
             success: true,
             data: reservation
@@ -341,7 +357,7 @@ exports.updateReservation = async (req, res, next) => {
 
     } catch (err) {
         console.error(err.message);
-        return res.status(500).json({ success: false, msg: 'Cannot update the reservation' });
+        return res.status(500).json({ success: false, message: 'Cannot update the reservation' });
     }
 };
 
@@ -353,7 +369,7 @@ exports.deleteReservation = async (req, res, next) => {
         const reservation = await Reservation.findById(req.params.id);
 
         if (!reservation) {
-            return res.status(404).json({ success: false, msg: `No reservation with the id of ${req.params.id}` });
+            return res.status(404).json({ success: false, message: `No reservation with the id of ${req.params.id}` });
         }
 
         // Convert reservation time to Date object
@@ -364,14 +380,14 @@ exports.deleteReservation = async (req, res, next) => {
         if (req.user.role !== 'admin' && reservationTime - currentTime <= 60 * 60 * 1000) {
             return res.status(400).json({
                 success: false,
-                msg: `You cannot delete the reservation within 1 hour of the scheduled time`
+                message: `You cannot delete the reservation within 1 hour of the scheduled time`
             });
         }
 
         if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success: false,
-                msg: `User ${req.user.id} is not authorized to delete this reservation`
+                message: `User ${req.user.id} is not authorized to delete this reservation`
             });
         }
 
@@ -380,6 +396,7 @@ exports.deleteReservation = async (req, res, next) => {
             await logAdminAction(req.user.id, 'Delete', 'Reservation', req.params.id);
         }
 
+        await Notification.deleteMany({ targetAudience: reservation._id });
         await reservation.deleteOne();
 
         res.status(200).json({
@@ -389,6 +406,6 @@ exports.deleteReservation = async (req, res, next) => {
 
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, msg: 'Cannot delete the reservation' });
+        res.status(500).json({ success: false, message: 'Cannot delete the reservation' });
     }
 };
