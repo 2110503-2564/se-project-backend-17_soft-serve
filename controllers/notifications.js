@@ -5,16 +5,16 @@ const Reservation = require('../models/Reservation');
 // @route   POST /api/v1/notifications
 // @access  Private
 exports.createNotification = async (req, res, next) => {
-    const { title, message, targetAudience } = req.body;
+    let { title, message, targetAudience } = req.body;
 
-    if(req.user.role == 'admin'){
+    if(req.user.role === 'admin'){
         if (!targetAudience) {
             return res.status(400).json({
                 success: false,
                 error: 'targetAudience is required for admin'
             });
         }
-    }else if(req.user.role == 'restaurantManager'){
+    } else if(req.user.role === 'restaurantManager'){
         if(!(req.user.verified)){
             return res.status(400).json({
                 success: false,
@@ -22,8 +22,18 @@ exports.createNotification = async (req, res, next) => {
             });
         }
 
+        // Restaurant manager can only target customers who have reserved at their restaurant
         targetAudience = 'Customers';
-    }else{
+        
+        // Check if the restaurant manager has a restaurant assigned
+        if(!req.user.restaurant) {
+            return res.status(400).json({
+                success: false,
+                error: 'Restaurant manager must be associated with a restaurant'
+            });
+        }
+        
+    } else {
         return res.status(400).json({
             success: false,
             error: 'Invalid user role'
@@ -34,7 +44,7 @@ exports.createNotification = async (req, res, next) => {
         const notification = await Notification.create({
             title,
             message,
-            creatorId: req.user._id, 
+            creatorId: req.user._id,
             createdBy: req.user.role,
             targetAudience,
             createdAt: Date.now()
