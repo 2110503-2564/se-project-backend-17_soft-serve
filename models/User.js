@@ -13,15 +13,23 @@ const UserSchema = new mongoose.Schema({
             message: 'Name cannot be empty or contain only spaces'
         }
     },
-    tel : {
-        type : String,
-        required : [true,'Please add a telephone number'],
-        validate: {
-            validator: function (v) {
-                return /^[0-9-]+$/.test(v); // check if it contains only digits and hyphens
+    tel: {
+        type: String,
+        required: [true, 'Please add a telephone number'],
+        validate: [
+            {
+                validator: function (v) {
+                    return /^[0-9-]+$/.test(v);
+                },
+                message: 'Telephone number must contain digits and hyphens only'
             },
-            message: 'Telephone number must contain digits and hyphens only'
-        }
+            {
+                validator: function (v) {
+                    return v.length <= 15;
+                },
+                message: 'Telephone number must not exceed 15 characters'
+            }
+        ]
     },
     email : {
         type : String,

@@ -40,14 +40,21 @@ const RestaurantSchema = new mongoose.Schema({
     },
     tel: {
         type: String,
-        required : [true,'Please add a telephone number'],
-        unique : true,
-        validate: {
-            validator: function (v) {
-                return /^[0-9-]+$/.test(v); // check if it contains only digits and hyphens
+        required: [true, 'Please add a telephone number'],
+        validate: [
+            {
+                validator: function (v) {
+                    return /^[0-9-]+$/.test(v);
+                },
+                message: 'Telephone number must contain digits and hyphens only'
             },
-            message: 'Telephone number must contain digits and hyphens only'
-        }
+            {
+                validator: function (v) {
+                    return v.length <= 15;
+                },
+                message: 'Telephone number must not exceed 15 characters'
+            }
+        ]
     },
     openTime: {
         type: String,
