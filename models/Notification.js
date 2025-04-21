@@ -27,11 +27,18 @@ const NotificationSchema = new mongoose.Schema({
       required: true
     },
     targetAudience: {
-      type: String,
-      // Restaurant Manager can only sent to customers that are has reserved in his restaurant
-      // Admin can sent to customers or restaurant managers or all users
-      enum: ['Customers', 'RestaurantManagers', 'All'],
-      required: true
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+      validate: {
+        validator: function(value) {
+          const allowedStrings = ['Customers', 'RestaurantManagers', 'All'];
+          return (
+            allowedStrings.includes(value) ||
+            mongoose.Types.ObjectId.isValid(value)
+          );
+        },
+        message: 'targetAudience must be Customers, RestaurantManagers, All, or Reservation ObjectId'
+      }
     },
     createdAt: {
       type: Date,
