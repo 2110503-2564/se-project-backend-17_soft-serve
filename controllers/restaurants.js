@@ -212,6 +212,11 @@ exports.deleteRestaurant = async (req, res, next) => {
           }
 
         // Cascading delete
+        const reservations = await Reservation.find({ restaurant: req.params.id });
+        const reservationIds = reservations.map(reservation => reservation._id);
+
+        await Notification.deleteMany({ targetAudience: { $in: reservationIds } });
+        
         await Reservation.deleteMany({ restaurant: req.params.id });
         await Review.deleteMany({restaurantId:req.params.id});
         await Notification.deleteMany({creatorId:req.params.id});
