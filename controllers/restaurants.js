@@ -209,21 +209,41 @@ exports.deleteRestaurant = async (req, res, next) => {
 
         if (req.user.role === 'admin') {
             await logAdminAction(req.user.id, 'Delete', 'Restaurant', req.params.id);
-          }
+        }
 
-        // Cascading delete
-        const reservations = await Reservation.find({ restaurant: req.params.id });
+        // Find all reservations for this restaurant and populate the user field
+        const reservations = await Reservation.find({ restaurant: req.params.id }).populate('user', 'name');
         const reservationIds = reservations.map(reservation => reservation._id);
 
+        // Create notifications for users with reservations
+        if (reservations.length > 0) {
+            const notifications = reservations.map(reservation => ({
+                title: 'Restaurant Reservation Cancelled',
+                message: `Your reservation at ${restaurant.name} has been cancelled because the restaurant has been removed from our platform.`,
+                createdBy: 'system',
+                targetAudience: reservation.user._id, // Send to specific user
+                createdAt: new Date()
+            }));
+
+            // Create all notifications
+            await Notification.insertMany(notifications);
+        }
+
+        // Continue with existing cascading delete logic
         await Notification.deleteMany({ targetAudience: { $in: reservationIds } });
-        
         await Reservation.deleteMany({ restaurant: req.params.id });
-        await Review.deleteMany({restaurantId:req.params.id});
-        await Notification.deleteMany({creatorId:req.params.id});
-        await User.deleteOne({restaurant:req.params.id});
+        await Review.deleteMany({ restaurantId: req.params.id });
+        await Notification.deleteMany({ creatorId: req.params.id });
+        await User.deleteOne({ restaurant: req.params.id });
         await Restaurant.deleteOne({ _id: req.params.id });
 
-        res.status(200).json({ success: true, data: {} });
+        res.status(200).json({ 
+            success: true, 
+            data: {},
+            message: reservations.length > 0 ? 
+                `Restaurant deleted successfully. ${reservations.length} users notified of their cancelled reservations.` : 
+                'Restaurant deleted successfully.'
+        });
     } catch (err) {
         console.error(err.message);
         res.status(400).json({ success: false, message: err.message });
