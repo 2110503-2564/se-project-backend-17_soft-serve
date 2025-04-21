@@ -65,80 +65,99 @@ exports.createNotification = async (req, res, next) => {
 // @desc    Get all notifications
 // @route   GET /api/v1/notifications
 // @access  Public
-// Adds pagination metadata (next/prev) to the response.
+// @desc    Get all notifications
+// @route   GET /api/v1/notifications
+// @access  Public
 exports.getNotifications = async (req, res, next) => {
     let query;
 
-    // Copy req.query
-    const reqQuery = { ...req.query };
-
-    // Fields to exclude
-    const removeFields = ['select', 'sort', 'page', 'limit'];
-
-    // Loop over remove fields and delete them from reqQuery
-    removeFields.forEach(param => delete reqQuery[param]);
-
-    let queryStr = JSON.stringify(reqQuery);
-    // Create operators ($gt,$gte,$lt,$lte)
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-
-    // Finding resource
-    query = Notification.find(JSON.parse(queryStr));
-
-    // Select Fields
-    if (req.query.select) {
-        const fields = req.query.select.split(',').join(' ');
-        query = query.select(fields);
-    }
-
-    // Sort
-    if (req.query.sort) {
-        const sortBy = req.query.sort.split(',').join(' ');
-        query = query.sort(sortBy);
-    } else {
-        query = query.sort('-createdAt');
-    }
-
-    // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 25;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const total = await Notification.countDocuments();
-
-    query = query.skip(startIndex).limit(limit);
 
     try {
+        if (req.user.role === 'admin') {
+            query = Notification.find({});
+        } else if (req.user.role === 'restaurantManager') {
+            query = Notification.find({
+                $or: [
+                    { creatorId: req.user._id },
+                    { targetAudience: 'RestaurantManagers' },
+                    { targetAudience: 'All' }
+                ]
+            });
+        } else {
+            // User role
+            const today = new Date();
+
+            const futureReservations = await Reservation.find({
+                user: req.user._id,
+                revDate: { $gte: today }
+            }).select('restaurant');
+
+            const restaurantIDs = futureReservations.map(r => r.restaurant);
+
+            query = Notification.find({
+                $or: [
+                    { targetAudience: 'Customers', creatorId: { $in: restaurantIDs } },
+                    { targetAudience: 'All' }
+                ]
+            });
+        }
+
+        // Dynamic query filtering
+        const reqQuery = { ...req.query };
+        const removeFields = ['select', 'sort', 'page', 'limit'];
+        removeFields.forEach(param => delete reqQuery[param]);
+
+        let queryStr = JSON.stringify(reqQuery);
+        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+        query = query.find(JSON.parse(queryStr));
+
+        // Select
+        if (req.query.select) {
+            const fields = req.query.select.split(',').join(' ');
+            query = query.select(fields);
+        }
+
+        // Sort
+        if (req.query.sort) {
+            const sortBy = req.query.sort.split(',').join(' ');
+            query = query.sort(sortBy);
+        } else {
+            query = query.sort('-createdAt');
+        }
+
+        const total = await query.clone().countDocuments();
+        query = query.skip(startIndex).limit(limit);
+
         const notifications = await query;
 
         // Pagination result
         const pagination = {};
-
         if (endIndex < total) {
-            pagination.next = {
-                page: page + 1,
-                limit
-            };
+            pagination.next = { page: page + 1, limit };
         }
-
         if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit
-            };
+            pagination.prev = { page: page - 1, limit };
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             count: notifications.length,
+            total,
             pagination,
             data: notifications
         });
-    } catch (err) {
-        console.error(err.message);
-        res.status(400).json({ success: false, msg: err.message });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 };
+
 // @desc    Delete single notifications
 // @route   DELETE /api/v1/notifications/:id
 // @access  Private
@@ -174,4 +193,3 @@ exports.deleteNotification = async (req, res, next) => {
         });
     }
 };
-
