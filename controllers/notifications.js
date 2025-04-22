@@ -176,7 +176,7 @@ exports.deleteNotification = async (req, res, next) => {
         }
 
         // Check if the user is authorized to delete the notification
-        if (notification.creatorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        if ((notification.creatorId.toString() !== req.user._id.toString() && req.user.role !== 'admin') || req.user.role === 'user') {
             return res.status(403).json({
                 success: false,
                 error: 'Not authorized to delete this notification'
