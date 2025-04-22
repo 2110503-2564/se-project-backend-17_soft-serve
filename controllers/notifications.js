@@ -134,6 +134,13 @@ exports.getNotifications = async (req, res, next) => {
 
         const notifications = await query;
 
+        if(req.user.role === 'user') {
+            notifications.populate({
+                path: 'restaurant',
+                select: 'name province tel imgPath'
+            })
+        }
+
         // Pagination result
         const pagination = {};
         if (endIndex < total) {
