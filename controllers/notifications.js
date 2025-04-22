@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const Reservation = require('../models/Reservation');
+const User = require('../models/User')
 
 // @desc    Create a notification
 // @route   POST /api/v1/notifications
@@ -89,18 +90,20 @@ exports.getNotifications = async (req, res, next) => {
             });
         } else {
             // User role
-            const today = new Date();
 
             const futureReservations = await Reservation.find({
                 user: req.user._id,
-                revDate: { $gte: today }
             }).select('restaurant');
 
             const restaurantIDs = futureReservations.map(r => r.restaurant);
 
+            const resManagers = await User.find({
+                restaurant : {$in: restaurantIDs}
+            })
+ 
             query = Notification.find({
                 $or: [
-                    { targetAudience: 'Customers', creatorId: { $in: restaurantIDs } },
+                    { targetAudience: 'Customers', creatorId: { $in: resManagers } },
                     { targetAudience: 'All' }
                 ]
             });
