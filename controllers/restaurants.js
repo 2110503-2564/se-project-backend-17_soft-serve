@@ -221,7 +221,7 @@ exports.deleteRestaurant = async (req, res, next) => {
                 title: 'Restaurant Reservation Cancelled',
                 message: `Your reservation at ${restaurant.name} has been cancelled because the restaurant has been removed from our platform.`,
                 createdBy: 'system',
-                targetAudience: reservation.user._id, // Send to specific user
+                targetAudience: "All", // Send to specific user
                 createdAt: new Date()
             }));
 
