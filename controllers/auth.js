@@ -127,7 +127,7 @@ exports.getMe = async (req, res, next) => {
         res.status(200).json({ success: true, data: user });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -185,7 +185,7 @@ exports.deleteUser = async (req, res, next) => {
         res.status(200).json({ success: true, data: 'User deleted' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -210,7 +210,7 @@ exports.updateMe = async (req, res, next) => {
         res.status(200).json({ success: true, data: user });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -242,7 +242,7 @@ exports.changePassword = async (req, res, next) => {
         res.status(200).json({ success: true, message: 'Password updated successfully' });
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -301,7 +301,7 @@ exports.verifyRestaurant = async (req, res, next) => {
 
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({ success: false, message: 'Server Error' });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -317,10 +317,10 @@ exports.getAllRestaurantManagers = async (req, res, next) => {
             count: restaurantManagers.length,
             data: restaurantManagers,
         });
-    } catch (error) {
+    } catch (err) {
         res.status(500).json({
             success: false,
-            message: 'Server Error',
+            message: err.message,
         });
     }
 };
