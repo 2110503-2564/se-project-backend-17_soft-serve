@@ -69,6 +69,21 @@ module.exports = router;
  *     tags: [Notifications]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         required: false
+ *         description: Page number for pagination (optional)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         required: false
+ *         description: Number of items per page (optional)
  *     responses:
  *       200:
  *         description: Notifications retrieved successfully
@@ -83,6 +98,27 @@ module.exports = router;
  *                 count:
  *                   type: integer
  *                   example: 1
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     next:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: number
+ *                           example: 3
+ *                         limit:
+ *                           type: number
+ *                           example: 25
+ *                     prev:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: number
+ *                           example: 1
+ *                         limit:
+ *                           type: number
+ *                           example: 25
  *                 data:
  *                   type: array
  *                   items:
