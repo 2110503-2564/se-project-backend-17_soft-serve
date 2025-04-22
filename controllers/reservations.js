@@ -1,7 +1,6 @@
 const Reservation = require('../models/Reservation');
 const Restaurant = require('../models/Restaurant');
 const AdminLog = require('../models/AdminLog');
-const Notification = require('../models/Notification');
 
 const moment = require('moment-timezone');
 
@@ -82,7 +81,7 @@ exports.getReservation = async (req, res, next) => {
         });
 
         if (!reservation) {
-            console.log(`for debug this is req.id ${req.params.id}`);
+            console.log(`id ${req.params.id}`);
             
             return res.status(404).json({ success: false, message: `Reservation not found. Please check the reservation ID.` });
         }
@@ -107,7 +106,7 @@ exports.addReservation = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.restaurantId);
 
         if (!restaurant) {
-            console.log(`req resID is ${req.params.restaurantId}`);
+            console.log(`id ${req.params.restaurantId}`);
             
             return res.status(404).json({ success: false, message: `Restaurant not found. Please check the restaurant ID.` });
         }
@@ -159,7 +158,7 @@ exports.addReservation = async (req, res, next) => {
         if (existedReservations.length >= 3 && req.user.role !== 'admin') {
             return res.status(400).json({
                 success: false,
-                message: `The user with id ${req.user.id} has already made 3 reservations on ${revDate.toDateString()}`
+                message: `The user has already made 3 reservations on ${revDate.toDateString()}`
             });
         }
 
@@ -183,22 +182,13 @@ exports.addReservation = async (req, res, next) => {
         // Create reservation
         const reservation = await Reservation.create(req.body);
 
-        // Add reminder notification
-        const reminderNoticification = await Notification.create({
-            title: 'Reservation Reminder',
-            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
-            createdBy: 'system',
-            targetAudience: reservation._id,
-            createdAt: new Date()
-        });
-
         res.status(200).json({
             success: true,
             data: reservation
         });
     } catch (err) {
         console.error(err.message);
-        return res.status(500).json({ success: false, message: 'Failed to create reservation. Please try again later.', error: err.message });    
+        return res.status(500).json({ success: false, message: 'Failed to create reservation. Please try again later.'});    
     }
 };
 
@@ -267,7 +257,7 @@ exports.updateReservation = async (req, res, next) => {
         const restaurant = await Restaurant.findById(reservation.restaurant._id);
 
         if (!restaurant) {
-            console.log(`id is ${req.params.restaurantId}`);
+            console.log(`id ${req.params.restaurantId}`);
             
             return res.status(404).json({ success: false, message: `Associated restaurant not found. Please verify the restaurant ID.` });
         }
@@ -308,9 +298,11 @@ exports.updateReservation = async (req, res, next) => {
         }
 
         if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            console.log(`id ${req.user.id}`);
+            
             return res.status(401).json({
                 success: false,
-                message: `User ${req.user.id} is not authorized to update this reservation`
+                message: `User is not authorized to update this reservation`
             });
         }
 
@@ -343,12 +335,6 @@ exports.updateReservation = async (req, res, next) => {
             new: true,
             runValidators: true
         });
-
-        const notification = await Notification.findOne({ targetAudience: reservation._id });
-        if (notification) {
-            notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`;
-            await notification.save();
-        }
 
         res.status(200).json({
             success: true,
@@ -385,9 +371,11 @@ exports.deleteReservation = async (req, res, next) => {
         }
 
         if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            console.log(`id ${req.user.id}`);
+            
             return res.status(401).json({
                 success: false,
-                message: `User ${req.user.id} is not authorized to delete this reservation`
+                message: `User  is not authorized to delete this reservation`
             });
         }
 
@@ -396,7 +384,6 @@ exports.deleteReservation = async (req, res, next) => {
             await logAdminAction(req.user.id, 'Delete', 'Reservation', req.params.id);
         }
 
-        await Notification.deleteMany({ targetAudience: reservation._id });
         await reservation.deleteOne();
 
         res.status(200).json({
