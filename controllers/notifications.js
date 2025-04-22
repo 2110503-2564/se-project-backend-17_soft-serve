@@ -66,9 +66,6 @@ exports.createNotification = async (req, res, next) => {
 // @desc    Get all notifications
 // @route   GET /api/v1/notifications
 // @access  Public
-// @desc    Get all notifications
-// @route   GET /api/v1/notifications
-// @access  Public
 exports.getNotifications = async (req, res, next) => {
     let query;
 
