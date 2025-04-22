@@ -182,6 +182,15 @@ exports.addReservation = async (req, res, next) => {
         // Create reservation
         const reservation = await Reservation.create(req.body);
 
+  // Add reminder notification
+  const reminderNoticification = await Notification.create({
+    title: 'Reservation Reminder',
+    message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
+    createdBy: 'system',
+    targetAudience: reservation._id,
+    createdAt: new Date()
+});
+
         res.status(200).json({
             success: true,
             data: reservation
@@ -336,6 +345,14 @@ exports.updateReservation = async (req, res, next) => {
             runValidators: true
         });
 
+        const notification = await Notification.findOne({ targetAudience: reservation._id });
+        if (notification) {
+            notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`;
+            await notification.save();
+        }
+
+
+
         res.status(200).json({
             success: true,
             data: reservation
@@ -383,7 +400,7 @@ exports.deleteReservation = async (req, res, next) => {
         if (req.user.role === 'admin') {
             await logAdminAction(req.user.id, 'Delete', 'Reservation', req.params.id);
         }
-
+        await Notification.deleteMany({ targetAudience: reservation._id });
         await reservation.deleteOne();
 
         res.status(200).json({
