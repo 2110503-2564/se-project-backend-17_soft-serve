@@ -102,11 +102,6 @@ const RestaurantSchema = new mongoose.Schema({
         min : 0,
         required : true
     },
-    starCount: {
-        type: Map,
-        of: Number,
-        default: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    }, 
     imgPath : {
         type: String,
         default : "https://drive.google.com/uc?id=1lwTwYL45cFtoBKQvvj0V49Zd8j_PWiyr",
