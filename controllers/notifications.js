@@ -95,6 +95,11 @@ exports.getNotifications = async (req, res, next) => {
                             { targetAudience: 'All' }
                         ],
                         publishAt: { $lte: Date.now() }
+                    },
+                    { // Manager can see notifications sent to their own customers
+                        targetAudience: 'Customers',
+                        creatorId: req.user._id,
+                        publishAt: { $lte: Date.now() }
                     }
                 ]
             });
@@ -111,11 +116,12 @@ exports.getNotifications = async (req, res, next) => {
             const resManagers = await User.find({
                 restaurant : {$in: restaurantIDs}
             })
- 
+            const admins = await User.find({ role: 'admin' });
             
             query = Notification.find({
                 $or: [
                     { targetAudience: 'Customers', creatorId: { $in: resManagers } },
+                    { targetAudience: 'Customers', creatorId: { $in: admins } },
                     { targetAudience: 'All' },
                     { targetAudience: {$in: reservationIDs }}
                 ],
@@ -157,7 +163,7 @@ exports.getNotifications = async (req, res, next) => {
             select: 'name tel province imgPath',
             match: { createdBy: 'restaurantManager' }
             })
-            .where('creatorId').ne(req.user._id) // Exclude notifications created by the current user
+            //.where('creatorId').ne(req.user._id) // Exclude notifications created by the current user
             .skip(startIndex)
             .limit(limit);
 
@@ -171,6 +177,11 @@ exports.getNotifications = async (req, res, next) => {
         if (startIndex > 0) {
             pagination.prev = { page: page - 1, limit };
         }
+
+        // Conditionally exclude notifications created by the current user
+        //if (req.user.role !== 'admin') {
+        //    query = query.where('creatorId').ne(req.user._id);
+        //}
 
         return res.status(200).json({
             success: true,
