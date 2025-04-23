@@ -119,7 +119,7 @@ exports.getNotifications = async (req, res, next) => {
                     { targetAudience: 'All' },
                     { targetAudience: {$in: reservationIDs }}
                 ],
-                publishAt: { $gte: Date.now() - 24 * 60 * 60 * 1000 }
+                //publishAt: { $gte: Date.now() - 24 * 60 * 60 * 1000 }
                 //pusblishAt
             });
         }
