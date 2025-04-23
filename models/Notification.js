@@ -57,13 +57,7 @@ const NotificationSchema = new mongoose.Schema({
     publishAt: {
       type: Date,
       default: Date.now,
-      required: true,
-      validate: {
-        validator: function(value) {
-          return value >= new Date();
-        },
-        message: 'publishAt cannot be a date in the past'
-      }
+      required: true
     },    
     createdAt: {
       type: Date,

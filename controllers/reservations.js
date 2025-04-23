@@ -352,10 +352,9 @@ exports.updateReservation = async (req, res, next) => {
         const notification = await Notification.findOne({ targetAudience: reservation._id });
         if (notification) {
             notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`;
+            notification.publishAt = moment(reservation.revDate).subtract(24, 'hours').toDate();
             await notification.save();
         }
-
-
 
         res.status(200).json({
             success: true,
