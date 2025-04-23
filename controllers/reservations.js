@@ -182,14 +182,15 @@ exports.addReservation = async (req, res, next) => {
         // Create reservation
         const reservation = await Reservation.create(req.body);
 
-  // Add reminder notification
-  const reminderNoticification = await Notification.create({
-    title: 'Reservation Reminder',
-    message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
-    createdBy: 'system',
-    targetAudience: reservation._id,
-    createdAt: new Date()
-});
+        // Add reminder notification
+        const reminderNoticification = await Notification.create({
+            title: 'Reservation Reminder',
+            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
+            createdBy: 'system',
+            targetAudience: reservation._id,
+            publishAt: moment(reservation.revDate).subtract(24, 'hours').toDate(),
+            createdAt: new Date()
+        });
 
         res.status(200).json({
             success: true,

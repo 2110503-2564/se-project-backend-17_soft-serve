@@ -88,8 +88,13 @@ exports.getNotifications = async (req, res, next) => {
             query = Notification.find({
                 $or: [
                     { creatorId: req.user._id },
-                    { targetAudience: 'RestaurantManagers' },
-                    { targetAudience: 'All' }
+                    {
+                        $or: [
+                            { targetAudience: 'RestaurantManagers' },
+                            { targetAudience: 'All' }
+                        ],
+                        publishAt: { $lte: Date.now() }
+                    }
                 ]
             });
         } else {
@@ -109,7 +114,8 @@ exports.getNotifications = async (req, res, next) => {
                 $or: [
                     { targetAudience: 'Customers', creatorId: { $in: resManagers } },
                     { targetAudience: 'All' }
-                ]
+                ],
+                publishAt: { $lte: Date.now() }
             });
         }
 
