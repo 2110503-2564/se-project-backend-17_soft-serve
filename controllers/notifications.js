@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const Reservation = require('../models/Reservation');
 const User = require('../models/User')
+const Restaurant = require('../models/Restaurant');
 
 // @desc    Create a notification
 // @route   POST /api/v1/notifications
@@ -143,14 +144,14 @@ exports.getNotifications = async (req, res, next) => {
         }
 
         const total = await query.clone().countDocuments();
-        query = query.skip(startIndex).limit(limit);
-
-        if(req.user.role !== 'restaurantManager') {
-            query.where('createdBy').equals('restaurantManager').populate({
+        query = query
+            .populate({
                 path: 'restaurant',
-                select: 'name province tel'
-            });
-        }
+                select: 'name tel province',
+                match: { createdBy: 'restaurantManager' }
+            })
+            .skip(startIndex)
+            .limit(limit);
 
         const notifications = await query;
 
