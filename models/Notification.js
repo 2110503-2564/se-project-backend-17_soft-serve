@@ -21,6 +21,20 @@ const NotificationSchema = new mongoose.Schema({
           message: 'creatorId is required when createdBy is admin or restaurantManager'
         }
     },
+    restaurant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Restaurant',
+      validate: {
+        validator: function(value) {
+          if (this.createdBy === 'restaurantManager') {
+            return value != null;
+          }
+
+          return true;
+        },
+          message: 'restaurant is required when createdBy is restaurantManager'
+      }
+    },
     createdBy: {
       type: String,
       enum: ['admin', 'restaurantManager', 'system'],
@@ -40,6 +54,17 @@ const NotificationSchema = new mongoose.Schema({
         message: 'targetAudience must be Customers, RestaurantManagers, All, or Reservation ObjectId'
       }
     },
+    publishAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+      validate: {
+        validator: function(value) {
+          return value >= new Date();
+        },
+        message: 'publishAt cannot be a date in the past'
+      }
+    },    
     createdAt: {
       type: Date,
       default: Date.now,

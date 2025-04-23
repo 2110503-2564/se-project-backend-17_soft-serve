@@ -6,7 +6,7 @@ const User = require('../models/User')
 // @route   POST /api/v1/notifications
 // @access  Private
 exports.createNotification = async (req, res, next) => {
-    let { title, message, targetAudience } = req.body;
+    let { title, message, targetAudience, publishAt } = req.body;
 
     if(req.user.role === 'admin'){
         if (!targetAudience) {
@@ -42,14 +42,21 @@ exports.createNotification = async (req, res, next) => {
     }
 
     try {
-        const notification = await Notification.create({
+        const notificationData = {
             title,
             message,
             creatorId: req.user._id,
             createdBy: req.user.role,
             targetAudience,
+            publishAt,
             createdAt: Date.now()
-        });
+        };
+
+        if (req.user.role === 'restaurantManager') {
+            notificationData.restaurant = req.user.restaurant;
+        }
+
+        const notification = await Notification.create(notificationData);
 
         res.status(201).json({
             success: true,
@@ -132,14 +139,14 @@ exports.getNotifications = async (req, res, next) => {
         const total = await query.clone().countDocuments();
         query = query.skip(startIndex).limit(limit);
 
-        const notifications = await query;
-
-        if(req.user.role === 'user') {
-            notifications.populate({
+        if(req.user.role !== 'restaurantManager') {
+            query.where('createdBy').equals('restaurantManager').populate({
                 path: 'restaurant',
-                select: 'name province tel imgPath'
-            })
+                select: 'name province tel'
+            });
         }
+
+        const notifications = await query;
 
         // Pagination result
         const pagination = {};
