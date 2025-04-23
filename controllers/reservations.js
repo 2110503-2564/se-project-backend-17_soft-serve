@@ -186,7 +186,7 @@ exports.addReservation = async (req, res, next) => {
             title: 'Reservation Reminder',
             message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
             createdBy: 'system',
-            targetAudience: req.user._id,
+            targetAudience: reservation._id,
             publishAt: moment(reservation.revDate).subtract(24, 'hours').toDate(),
             createdAt: new Date()
         });

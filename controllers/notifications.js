@@ -115,7 +115,7 @@ exports.getNotifications = async (req, res, next) => {
                 $or: [
                     { targetAudience: 'Customers', creatorId: { $in: resManagers } },
                     { targetAudience: 'All' },
-                    // { targetAudience: req.user._id}
+                    // Reservation Id ที่จองไว้
                 ],
                 publishAt: { $lte: Date.now() }
             });
