@@ -1,6 +1,7 @@
 const Reservation = require('../models/Reservation');
 const Restaurant = require('../models/Restaurant');
 const AdminLog = require('../models/AdminLog');
+const Notification = require('../models/Notification');
 
 const moment = require('moment-timezone');
 
@@ -106,35 +107,37 @@ exports.addReservation = async (req, res, next) => {
         const restaurant = await Restaurant.findById(req.params.restaurantId);
 
         if (!restaurant) {
-            console.log(`id ${req.params.restaurantId}`);
-            
-            return res.status(404).json({ success: false, message: `Restaurant not found. Please check the restaurant ID.` });
+            return res.status(404).json({
+                success: false,
+                message: `Restaurant not found. Please check the restaurant ID.`
+            });
         }
 
         if (!restaurant.verified) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Cannot make a reservation because the restaurant is not yet verified.' 
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot make a reservation because the restaurant is not yet verified.'
             });
         }
 
         const openTime = restaurant.openTime;
         const closeTime = restaurant.closeTime;
+
         const revTime = moment(req.body.revDate).tz('UTC');
+
         try {
             isReservationWithinOpeningHours(revTime, openTime, closeTime);
         } catch (error) {
-            return res.status(error.status).json({ success: false, message: error.message });
+            return res.status(error.status).json({
+                success: false,
+                message: error.message
+            });
         }
 
-        // Get the number of people already reserved for the given date
         const revDate = new Date(req.body.revDate);
         const currentReserved = await getReservedPeopleCount(restaurant._id, revDate);
-        console.log(restaurant._id);
-        console.log(currentReserved);
         const requestedPeople = req.body.numberOfPeople;
 
-        // Check if the new reservation exceeds max capacity
         if (currentReserved + requestedPeople > restaurant.maxReservation) {
             return res.status(400).json({
                 success: false,
@@ -142,19 +145,16 @@ exports.addReservation = async (req, res, next) => {
             });
         }
 
-        // Add user Id to req.body
         req.body.user = req.user.id;
 
-        // Check for existing reservations by the user on the same day
         const existedReservations = await Reservation.find({
             user: req.user.id,
             revDate: {
-                $gte: revDate.setHours(0, 0, 0, 0), // Set to the start of the day
-                $lt: revDate.setHours(23, 59, 59, 999) // Set to the end of the day
+                $gte: new Date(revDate.setHours(0, 0, 0, 0)),
+                $lt: new Date(revDate.setHours(23, 59, 59, 999))
             }
         });
 
-        // If the user is not an admin, they can only create 3 reservations per day
         if (existedReservations.length >= 3 && req.user.role !== 'admin') {
             return res.status(400).json({
                 success: false,
@@ -162,16 +162,17 @@ exports.addReservation = async (req, res, next) => {
             });
         }
 
-        // Check for all existing reservations by the user (for the 1-hour gap)
-        const allExistedReservations = await Reservation.find({user: req.user.id}).sort({revDate: -1});
+        const allExistedReservations = await Reservation.find({ user: req.user.id }).sort({ revDate: -1 });
 
-        // Check for 1 hour time gap from all reservations
         for (const existingReservation of allExistedReservations) {
             const existingRevTime = moment(existingReservation.revDate).tz('UTC');
             const oneHourBefore = existingRevTime.clone().subtract(1, 'hours');
             const oneHourAfter = existingRevTime.clone().add(1, 'hours');
 
-            if (revTime.isBetween(oneHourBefore, oneHourAfter, null, '()') && existingReservation._id.toString() !== req.body.id) {
+            if (
+                revTime.isBetween(oneHourBefore, oneHourAfter, null, '()') &&
+                existingReservation._id.toString() !== req.body.id
+            ) {
                 return res.status(400).json({
                     success: false,
                     message: 'Please ensure there is at least 1 hour gap between reservations.'
@@ -179,11 +180,9 @@ exports.addReservation = async (req, res, next) => {
             }
         }
 
-        // Create reservation
         const reservation = await Reservation.create(req.body);
 
-        // Add reminder notification
-        const reminderNoticification = await Notification.create({
+        await Notification.create({
             title: 'Reservation Reminder',
             message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
             createdBy: 'system',
@@ -197,10 +196,14 @@ exports.addReservation = async (req, res, next) => {
             data: reservation
         });
     } catch (err) {
-        console.error(err.message);
-        return res.status(500).json({ success: false, message: 'Failed to create reservation. Please try again later.'});    
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to create reservation. Please try again later.'
+        });
     }
 };
+
+
 
 function isReservationWithinOpeningHours(revTime, openTime, closeTime) {
     // Check if the restaurant is open
