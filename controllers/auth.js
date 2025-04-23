@@ -169,13 +169,14 @@ exports.deleteUser = async (req, res, next) => {
         await logAdminAction(req.user.id, 'Delete', `${targetUser.role}`, req.params.id);
 
         // If the user is a restaurant manager, perform cascading delete
-        if (targetUser.role === 'restaurantManager' && targetUser.restaurant) {
+        if (targetUser.role === 'restaurantManager') {
             const restaurantId = targetUser.restaurant;
+            const managerId = targetUser._id;
 
             // Delete all related data
             await Reservation.deleteMany({ restaurant: restaurantId });
             await Review.deleteMany({ restaurantId: restaurantId });
-            await Notification.deleteMany({ creatorId: restaurantId });
+            await Notification.deleteMany({ creatorId: managerId });
             await Restaurant.deleteOne({ _id: restaurantId });
         }
 
