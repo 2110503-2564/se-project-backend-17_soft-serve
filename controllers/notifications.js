@@ -114,7 +114,8 @@ exports.getNotifications = async (req, res, next) => {
             query = Notification.find({
                 $or: [
                     { targetAudience: 'Customers', creatorId: { $in: resManagers } },
-                    { targetAudience: 'All' }
+                    { targetAudience: 'All' },
+                    // { targetAudience: req.user._id}
                 ],
                 publishAt: { $lte: Date.now() }
             });
