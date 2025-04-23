@@ -150,7 +150,7 @@ exports.getNotifications = async (req, res, next) => {
         query = query
             .populate({
             path: 'restaurant',
-            select: 'name tel province',
+            select: 'name tel province imgPath',
             match: { createdBy: 'restaurantManager' }
             })
             .where('creatorId').ne(req.user._id) // Exclude notifications created by the current user
