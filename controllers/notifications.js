@@ -144,12 +144,16 @@ exports.getNotifications = async (req, res, next) => {
         }
 
         const total = await query.clone().countDocuments();
+        
+        // Populate restaurant details for notifications created by restaurant managers
+        // Exclude notifications created by the current user
         query = query
             .populate({
-                path: 'restaurant',
-                select: 'name tel province',
-                match: { createdBy: 'restaurantManager' }
+            path: 'restaurant',
+            select: 'name tel province',
+            match: { createdBy: 'restaurantManager' }
             })
+            .where('creatorId').ne(req.user._id) // Exclude notifications created by the current user
             .skip(startIndex)
             .limit(limit);
 
