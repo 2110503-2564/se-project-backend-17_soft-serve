@@ -15,7 +15,8 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test-coverage": "jest --watchAll --coverage",
     "dev": "nodemon server.js"
   },
   "dependencies": {
@@ -31,12 +32,14 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.47",
+    "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.10.1",
     "newman": "^6.2.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9"
   }
 }

@@ -3,3 +3,4 @@ node_modules/*
 # ignore config file
 config/config.env
 .vercel
+coverage/*
