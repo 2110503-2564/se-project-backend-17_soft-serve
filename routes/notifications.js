@@ -44,6 +44,10 @@ module.exports = router;
  *                 type: string
  *                 enum: [Customers, RestaurantManagers, All]
  *                 example: Customers
+ *               publishAt:
+ *                 type: string
+ *                 format: date-time
+ *                 example: 2025-04-12T13:00:00.000Z
  *             required:
  *               - title
  *               - message
@@ -56,7 +60,7 @@ module.exports = router;
  *             schema:
  *               $ref: '#/components/schemas/Notification'
  *       400:
- *         description: Invalid user role or missing targetAudience (if admin)
+ *         description: Invalid user role, missing targetAudience for admin, or restaurantManager not verified or not associated with a restaurant
  *       500:
  *         description: Server error
  */
@@ -76,14 +80,26 @@ module.exports = router;
  *           type: integer
  *           minimum: 1
  *         required: false
- *         description: Page number for pagination (optional)
+ *         description: Page number for pagination (optional, default is 1)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           minimum: 1
  *         required: false
- *         description: Number of items per page (optional)
+ *         description: Number of items per page (optional, default is 25)
+ *       - in: query
+ *         name: select
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Comma-separated list of fields to select (optional)
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Comma-separated list of fields to sort by (optional)
  *     responses:
  *       200:
  *         description: Notifications retrieved successfully
@@ -98,6 +114,9 @@ module.exports = router;
  *                 count:
  *                   type: integer
  *                   example: 1
+ *                 total:
+ *                   type: integer
+ *                   example: 10
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -188,12 +207,19 @@ module.exports = router;
  *           example: 60b8d295f1e2e74f30c6c123
  *         createdBy:
  *           type: string
- *           enum: [Admin, RestaurantManager]
- *           example: Admin
+ *           enum: [admin, restaurantManager, system]
+ *           example: admin
+ *         restaurant:
+ *           type: string
+ *           example: 60b8d295f1e2e74f30c6c124
  *         targetAudience:
  *           type: string
  *           enum: [Customers, RestaurantManagers, All]
  *           example: Customers
+ *         publishAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2025-04-12T13:00:00.000Z
  *         createdAt:
  *           type: string
  *           format: date-time
