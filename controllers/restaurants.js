@@ -231,7 +231,6 @@ exports.deleteRestaurant = async (req, res, next) => {
         }
 
         // Continue with existing cascading delete logic
-        await Notification.deleteMany({ targetAudience: { $in: reservationIds } });
         await Reservation.deleteMany({ restaurant: req.params.id });
         await Review.deleteMany({ restaurantId: req.params.id });
         await Notification.deleteMany({ creatorId: req.params.id });
