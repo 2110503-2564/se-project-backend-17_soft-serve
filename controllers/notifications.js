@@ -101,23 +101,26 @@ exports.getNotifications = async (req, res, next) => {
         } else {
             // User role
 
-            const futureReservations = await Reservation.find({
+            const userReservations = await Reservation.find({
                 user: req.user._id,
-            }).select('restaurant');
+            }).select('_id restaurant');
 
-            const restaurantIDs = futureReservations.map(r => r.restaurant);
+            const restaurantIDs = userReservations.map(r => r.restaurant);
+            const reservationIDs = userReservations.map(r => r._id);
 
             const resManagers = await User.find({
                 restaurant : {$in: restaurantIDs}
             })
  
+            
             query = Notification.find({
                 $or: [
                     { targetAudience: 'Customers', creatorId: { $in: resManagers } },
                     { targetAudience: 'All' },
-                    // Reservation Id ที่จองไว้
+                    { targetAudience: {$in: reservationIDs }}
                 ],
-                publishAt: { $lte: Date.now() }
+                publishAt: { $gte: Date.now() - 24 * 60 * 60 * 1000 }
+                //pusblishAt
             });
         }
 
