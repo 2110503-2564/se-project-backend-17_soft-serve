@@ -282,7 +282,7 @@ exports.updateReservation = async (req, res, next) => {
         const revDate = new Date(!req.body.revDate ? reservation.revDate : req.body.revDate);
         let currentReserved = await getReservedPeopleCount(restaurant._id, revDate);
         const requestedPeople = !req.body.numberOfPeople ? reservation.numberOfPeople : req.body.numberOfPeople;
-        currentReserved = currentReserved - reservation.numberOfPeople;
+        if(revDate == reservation.revDate) currentReserved = currentReserved - reservation.numberOfPeople;
 
         // Check if the new reservation exceeds max capacity
         if (currentReserved + requestedPeople > restaurant.maxReservation) {
