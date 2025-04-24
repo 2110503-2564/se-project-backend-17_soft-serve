@@ -27,7 +27,10 @@ exports.getReservations = async (req, res, next) => {
 
     if (req.user.role === 'user') {
         // General users can see only their reservations
-        query = Reservation.find({ user: req.user.id }).populate({
+        query = Reservation.find({
+            user: req.user.id,
+            revDate: { $gte: new Date() }
+        }).populate({
             path: 'restaurant',
             select: 'name province tel imgPath'
         });
