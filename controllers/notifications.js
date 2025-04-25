@@ -105,29 +105,72 @@ exports.getNotifications = async (req, res, next) => {
             });
         } else {
             // User role
-
             const userReservations = await Reservation.find({
                 user: req.user._id,
-            }).select('_id restaurant');
-
-            const restaurantIDs = userReservations.map(r => r.restaurant);
+            }).select('_id restaurant revDate');
+            
+            const latestReservationMap = new Map();
+            
+            // Get the latest reservation per restaurant
+            userReservations.forEach(res => {
+                const restaurantId = res.restaurant.toString();
+                const existingDate = latestReservationMap.get(restaurantId);
+                if (!existingDate || res.revDate > existingDate) {
+                    latestReservationMap.set(restaurantId, res.revDate);
+                }
+            });
+            
+            const restaurantIDs = Array.from(latestReservationMap.keys());
             const reservationIDs = userReservations.map(r => r._id);
-
+            
+            // Fetch restaurant managers
             const resManagers = await User.find({
-                restaurant : {$in: restaurantIDs}
-            })
+                restaurant: { $in: restaurantIDs }
+            });
+            
+            // Fetch admins
             const admins = await User.find({ role: 'admin' });
             
-            query = Notification.find({
-                $or: [
-                    { targetAudience: 'Customers', creatorId: { $in: resManagers } },
-                    { targetAudience: 'Customers', creatorId: { $in: admins } },
-                    { targetAudience: 'All' },
-                    { targetAudience: {$in: reservationIDs }}
-                ],
-                publishAt: { $lte: Date.now() }
-                //pusblishAt
+            // Build notification query conditions
+            const now = new Date();
+            const conditions = [];
+            
+            // Manager notifications (must be before latest reservation date)
+            resManagers.forEach(manager => {
+                const restaurantId = manager.restaurant?.toString();
+                const cutoffDate = latestReservationMap.get(restaurantId);
+                if (cutoffDate) {
+                    conditions.push({
+                        targetAudience: 'Customers',
+                        creatorId: manager._id,
+                        publishAt: { $lte: new Date(cutoffDate) }
+                    });
+                }
             });
+            
+            // Admin notifications (always use current time as cutoff)
+            admins.forEach(admin => {
+                conditions.push({
+                    targetAudience: 'Customers',
+                    creatorId: admin._id,
+                    publishAt: { $lte: now }
+                });
+            });
+            
+            // 'All' audience (respect publishAt <= now)
+            conditions.push({
+                targetAudience: 'All',
+                publishAt: { $lte: now }
+            });
+            
+            // Specific to reservation ID
+            conditions.push({
+                targetAudience: { $in: reservationIDs },
+                publishAt: { $lte: now }
+            });
+            
+            query = Notification.find({ $or: conditions });
+                     
         }
 
         // Dynamic query filtering
