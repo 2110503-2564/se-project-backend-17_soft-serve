@@ -185,9 +185,9 @@ exports.addReservation = async (req, res, next) => {
 
         const reservation = await Reservation.create(req.body);
 
-        const publishAt = moment(reservation.revDate).subtract(24, 'hours').tz('UTC').isBefore(moment()) 
-            ? moment().tz('UTC').toDate() 
-            : moment(reservation.revDate).subtract(24, 'hours').tz('UTC').toDate();
+        const publishAt = moment(reservation.revDate).subtract(24, 'hours').isBefore(moment())
+            ? moment().toDate()
+            : moment(reservation.revDate).subtract(24, 'hours').toDate();
 
         await Notification.create({
             title: 'Reservation Reminder',
@@ -360,7 +360,7 @@ exports.updateReservation = async (req, res, next) => {
         });
 
         const notification = await Notification.findOne({ targetAudience: reservation._id });
-        const publishAt = moment(reservation.revDate).subtract(24, 'hours').toDate().isBefore(moment()) 
+        const publishAt = moment(reservation.revDate).subtract(24, 'hours').isBefore(moment()) 
             ? moment().toDate() 
             : moment(notification.publishAt).subtract(24, 'hours').toDate();
 
