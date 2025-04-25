@@ -76,6 +76,7 @@ exports.createNotification = async (req, res, next) => {
 // @route   GET /api/v1/notifications
 // @access  Public
 exports.getNotifications = async (req, res, next) => {
+
     let query;
 
     const page = parseInt(req.query.page, 10) || 1;
@@ -120,6 +121,8 @@ exports.getNotifications = async (req, res, next) => {
                     latestReservationMap.set(restaurantId, res.revDate);
                 }
             });
+
+            console.log(latestReservationMap);
             
             const restaurantIDs = Array.from(latestReservationMap.keys());
             const reservationIDs = userReservations.map(r => r._id);
@@ -144,7 +147,10 @@ exports.getNotifications = async (req, res, next) => {
                     conditions.push({
                         targetAudience: 'Customers',
                         creatorId: manager._id,
-                        publishAt: { $lte: new Date(cutoffDate) }
+                        publishAt: { 
+                            $lte: new Date(),
+                            $lte: new Date(cutoffDate)
+                         }
                     });
                 }
             });
@@ -154,22 +160,32 @@ exports.getNotifications = async (req, res, next) => {
                 conditions.push({
                     targetAudience: 'Customers',
                     creatorId: admin._id,
-                    publishAt: { $lte: now }
+                    publishAt: { $lte: new Date() }
                 });
             });
             
             // 'All' audience (respect publishAt <= now)
             conditions.push({
                 targetAudience: 'All',
-                publishAt: { $lte: now }
+                publishAt: { $lte: new Date() }
             });
             
             // Specific to reservation ID
             conditions.push({
                 targetAudience: { $in: reservationIDs },
-                publishAt: { $lte: now }
+                publishAt: { $lte: new Date() }
             });
-            
+            const localDate = new Date();
+            const pa = new Date("2025-04-25T04:44:00.000Z");
+
+            const utcISOString = localDate.toISOString();
+
+            console.log(utcISOString);
+
+            if(localDate < pa){
+                console.log('aaa');
+            }
+                        
             query = Notification.find({ $or: conditions });
                      
         }
