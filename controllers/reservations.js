@@ -185,13 +185,13 @@ exports.addReservation = async (req, res, next) => {
 
         const reservation = await Reservation.create(req.body);
 
-        const publishAt = moment(reservation.revDate).subtract(24, 'hours').isBefore(moment()) 
-            ? moment().toDate() 
-            : moment(reservation.revDate).subtract(24, 'hours').toDate();
+        const publishAt = moment(reservation.revDate).subtract(24, 'hours').tz('UTC').isBefore(moment()) 
+            ? moment().tz('UTC').toDate() 
+            : moment(reservation.revDate).subtract(24, 'hours').tz('UTC').toDate();
 
         await Notification.create({
             title: 'Reservation Reminder',
-            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
+            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).tz('UTC').format('YYYY-MM-DD HH:mm')}`,
             createdBy: 'system',
             targetAudience: reservation._id,
             publishAt,
