@@ -126,7 +126,7 @@ exports.addReservation = async (req, res, next) => {
         const openTime = restaurant.openTime;
         const closeTime = restaurant.closeTime;
 
-        const revTime = moment(req.body.revDate).tz('UTC');
+        const revTime = moment(req.body.revDate);
 
         try {
             isReservationWithinOpeningHours(revTime, openTime, closeTime);
@@ -203,6 +203,7 @@ exports.addReservation = async (req, res, next) => {
             data: reservation
         });
     } catch (err) {
+        console.log(err.message);
         return res.status(500).json({
             success: false,
             message: 'Failed to create reservation. Please try again later.'
@@ -393,7 +394,10 @@ exports.deleteReservation = async (req, res, next) => {
 
         // Convert reservation time to Date object
         const reservationTime = new Date(reservation.revDate);
-        const currentTime = new Date();
+        const currentTime = moment().tz('UTC').toDate();
+
+        console.log(moment(reservationTime).tz('UTC').toDate());
+        console.log(currentTime);
 
         // Check if user is trying to delete within 1 hour of reservation time
         if (req.user.role !== 'admin' && reservationTime - currentTime <= 60 * 60 * 1000) {
