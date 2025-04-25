@@ -301,7 +301,7 @@ exports.updateReservation = async (req, res, next) => {
 
         const openTime = restaurant.openTime;
         const closeTime = restaurant.closeTime;
-        const revTime = moment(!req.body.revDate ? reservation.revDate : req.body.revDate).tz('UTC');
+        const revTime = moment(!req.body.revDate ? reservation.revDate : req.body.revDate);
         try {
             isReservationWithinOpeningHours(revTime, openTime, closeTime);
         } catch (error) {
