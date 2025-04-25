@@ -1,7 +1,8 @@
 const Notification = require('../models/Notification');
 const Reservation = require('../models/Reservation');
-const User = require('../models/User')
-const Restaurant = require('../models/Restaurant');
+const User = require('../models/User');
+
+const moment = require('moment-timezone');
 
 // @desc    Create a notification
 // @route   POST /api/v1/notifications
@@ -49,7 +50,7 @@ exports.createNotification = async (req, res, next) => {
             creatorId: req.user._id,
             createdBy: req.user.role,
             targetAudience,
-            publishAt,
+            publishAt : moment(publishAt).tz('UTC'),
             createdAt: Date.now()
         };
 
