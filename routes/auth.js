@@ -313,34 +313,7 @@ router.route('/me')
                 .get(protect, getMe)
                 .patch(protect, updateMe);
 
-/**
- * @swagger
- * /auth/changepassword:
- *   patch:
- *     security:
- *       - bearerAuth: []
- *     summary: Change password of current user
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               oldPassword:
- *                 type: string
- *               newPassword:
- *                 type: string
- *     responses:
- *       200:
- *         description: Password changed successfully
- *       400:
- *         description: Invalid old password
- *       500:
- *         description: Server error
- */
-router.patch('/changepassword', protect, changePassword);
+// router.patch('/changepassword', protect, changePassword);
                 
 /**
  * @swagger
