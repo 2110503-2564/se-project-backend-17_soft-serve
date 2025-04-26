@@ -29,11 +29,11 @@ exports.getReservations = async (req, res, next) => {
         // General users can see only their reservations
         query = Reservation.find({
             user: req.user.id,
-            revDate: { $gte: new Date() }
+            revDate: { $gte: moment().subtract(24, 'hours').toDate() }
         }).populate({
             path: 'restaurant',
             select: 'name province tel imgPath'
-        });
+        }).sort({ revDate: -1, createdAt: 1 });
     } else if(req.user.role === 'restaurantManager') {
         query = Reservation.find({ restaurant: req.user.restaurant })
             .populate({
@@ -56,7 +56,7 @@ exports.getReservations = async (req, res, next) => {
             query = Reservation.find().populate({
                 path: 'restaurant',
                 select: 'name province tel imgPath'
-            });
+            }).sort({ revDate: -1, createdAt: 1 });;
         }
     }
 
@@ -191,7 +191,7 @@ exports.addReservation = async (req, res, next) => {
 
         await Notification.create({
             title: 'Reservation Reminder',
-            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
+            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).utcOffset('+07:00').format('YYYY-MM-DD HH:mm')}`,
             createdBy: 'system',
             targetAudience: reservation._id,
             publishAt,
@@ -365,7 +365,7 @@ exports.updateReservation = async (req, res, next) => {
             : moment(notification.publishAt).subtract(24, 'hours').toDate();
 
         if (notification) {
-            notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`;
+            notification.message = `Your reservation at ${restaurant.name} has been updated to ${moment(reservation.revDate).utcOffset('+07:00').format('YYYY-MM-DD HH:mm')}`;
             notification.publishAt = publishAt
             await notification.save();
         }
