@@ -76,14 +76,58 @@ const AdminLog = require('../models/AdminLog');
 *       content:
 *         application/json:
 *           schema:
-*             $ref: '#/components/schemas/User'
+*             type: object
+*             required:
+*               - name
+*               - email
+*               - tel
+*               - role
+*               - password
+*             properties:
+*               name:
+*                 type: string
+*                 description: Name of user
+*               email:
+*                 type: string
+*                 description: Email of user
+*               tel:
+*                 type: string
+*                 description: Telephone number of user
+*               role:
+*                 type: string
+*                 description: Role of user (admin, user, or restaurantManager)
+*               password:
+*                 type: string
+*                 description: Password of user
 *     responses:
 *       201:
-*         description: The user was successfully created
+*         description: Successfully created and return JWT token
 *         content:
 *           application/json:
 *             schema:
-*               $ref: '#/components/schemas/User'
+*               type: object
+*               properties:
+*                 success:
+*                   type: boolean
+*                   example: true
+*                 token:
+*                   type: string
+*                   description: JWT Token
+*                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+*       400:
+*         description: Bad request, such as validation error or duplicate email
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: boolean
+*                   example: false
+*                 message:
+*                   type: string
+*                   description: Error message
+*                   example: "Email already exists"
 *       500:
 *         description: Some server error
 */
@@ -93,7 +137,7 @@ router.post('/register', register);
 * @swagger
 * /auth/login:
 *   post:
-*     summary: Log-in to the system
+*     summary: Log in to the system
 *     tags: [Authentication]
 *     requestBody:
 *       required: true
@@ -101,14 +145,47 @@ router.post('/register', register);
 *         application/json:
 *           schema:
 *             type: object
-*             properties: 
-*               email: 
-*                   type: string
-*               password: 
-*                   type: string
+*             required:
+*               - email
+*               - password
+*             properties:
+*               email:
+*                 type: string
+*                 description: User's email
+*                 example: user@example.com
+*               password:
+*                 type: string
+*                 description: User's password
+*                 example: yourpassword123
 *     responses:
-*       201:
-*         description: Log-in Successfully
+*       200:
+*         description: Login successful, returns JWT token
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: boolean
+*                   example: true
+*                 token:
+*                   type: string
+*                   description: JWT Token
+*                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+*       400:
+*         description: Bad request, invalid credentials or not verified
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: boolean
+*                   example: false
+*                 message:
+*                   type: string
+*                   description: Error message
+*                   example: "Invalid credentials"
 *       500:
 *         description: Some server error
 */
@@ -116,7 +193,7 @@ router.post('/login', login);
 
 /**
  * @swagger
- * /api/v1/auth/logout:
+ * /auth/logout:
  *   post:
  *     summary: Log out the current user
  *     tags: [Authentication]
@@ -164,13 +241,75 @@ router.post('/logout', protect, logout);
  *             properties:
  *               name:
  *                 type: string
+ *                 description: Updated name of the user
+ *                 example: "John Doe"
  *               tel:
  *                 type: string
+ *                 description: Updated telephone number
+ *                 example: "0812345678"
+ *             additionalProperties: false
  *     responses:
  *       200:
  *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "660e8d1d5a6e0e1234567890"
+ *                     name:
+ *                       type: string
+ *                       example: "John Doe"
+ *                     email:
+ *                       type: string
+ *                       example: "johndoe@example.com"
+ *                     tel:
+ *                       type: string
+ *                       example: "0812345678"
+ *                     role:
+ *                       type: string
+ *                       example: "user"
+ *                     verified:
+ *                       type: boolean
+ *                       example: true
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-04-26T10:30:00.000Z"
+ *       400:
+ *         description: Bad request (invalid fields)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid update fields"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 router.route('/me')
                 .get(protect, getMe)
