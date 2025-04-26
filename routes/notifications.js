@@ -192,10 +192,16 @@ module.exports = router;
  *   schemas:
  *     Notification:
  *       type: object
+ *       required:
+ *         - title
+ *         - message
+ *         - createdBy
+ *         - targetAudience
+ *         - publishAt
  *       properties:
  *         _id:
  *           type: string
- *           example: 642f11a62e631f1c15dfb123
+ *           description: Auto-generated unique ID
  *         title:
  *           type: string
  *           example: Promotion for Summer
@@ -204,6 +210,7 @@ module.exports = router;
  *           example: Get 20% off all items!
  *         creatorId:
  *           type: string
+ *           format: objectId
  *           example: 60b8d295f1e2e74f30c6c123
  *         createdBy:
  *           type: string
@@ -211,16 +218,13 @@ module.exports = router;
  *           example: admin
  *         restaurant:
  *           type: string
+ *           format: objectId
  *           example: 60b8d295f1e2e74f30c6c124
  *         targetAudience:
  *           type: string
- *           enum: [Customers, RestaurantManagers, All]
+ *           description: Can be 'Customers', 'RestaurantManagers', or 'All' or ReservationObjectId
  *           example: Customers
  *         publishAt:
- *           type: string
- *           format: date-time
- *           example: 2025-04-12T13:00:00.000Z
- *         createdAt:
  *           type: string
  *           format: date-time
  *           example: 2025-04-12T13:00:00.000Z

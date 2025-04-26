@@ -32,15 +32,23 @@ router.route('/:id').get(protect, getReservation)
  *       required:
  *         - revDate
  *         - restaurant
+ *         - user
  *         - numberOfPeople
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated unique ID
  *         revDate:
  *           type: string
  *           format: date-time
  *           example: "2025-04-01T19:00:00Z"
+ *         user:
+ *           type: string
+ *           format: objectId
+ *           example: 60b8d295f1e2e74f30c6c123
  *         restaurant:
  *           type: string
- *           description: Restaurant ID
+ *           format: objectId
  *           example: "60d0fe4f5311236168a109ca"
  *         numberOfPeople:
  *           type: number

@@ -20,6 +20,9 @@ const AdminLog = require('../models/AdminLog');
 *         - password
 *         - role
 *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated unique ID
 *         name:
 *           type: string
 *           description: Name of user
@@ -41,11 +44,6 @@ const AdminLog = require('../models/AdminLog');
 *         password:
 *           type: string
 *           description: Password of user 
-*         createdAt:
-*           type: string
-*           format: date
-*           example: '2023-08-20'
-*           description: Date of creation (default is current date-time)
 */
 
 /**

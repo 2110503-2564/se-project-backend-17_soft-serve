@@ -39,16 +39,16 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *       type: object
  *       required:
  *         - name
- *         - description
  *         - foodType
  *         - address
  *         - province
  *         - district
  *         - postalcode
+ *         - tel
  *         - openTime
  *         - closeTime
  *       properties:
- *         id:
+ *         _id:
  *           type: string
  *           description: Auto-generated unique ID
  *         name:
@@ -81,15 +81,21 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *         closeTime:
  *           type: string
  *           example: "22:00"
- *         rating:
+ *         ratingrating:
  *           type: number
  *           example: 4.5
+ *         reviewCount:
+ *           type: number
+ *           example: 5
  *         maxReservation:
  *           type: number
  *           example: 20
  *         imgPath:
  *           type: string
  *           example: "https://example.com/image.jpg"
+ *         verified:
+ *           type: boolean
+ *           example: true
  */
 
 /**

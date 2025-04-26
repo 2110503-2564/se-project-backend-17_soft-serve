@@ -24,50 +24,30 @@ router.route('/:id')
  *   schemas:
  *     Review:
  *       type: object
+ *       required:
+ *         - rating
+ *         - review
+ *         - customerId
+ *         - restaurantId
  *       properties:
  *         _id:
  *           type: string
- *           description: Review ID
- *           example: 660d91fd7f9dc3c02b166cb2
+ *           description: Auto-generated unique ID
  *         rating:
  *           type: number
  *           description: Rating from 1.0 to 5.0
  *           example: 4.5
  *         review:
  *           type: string
- *           description: Optional review text
  *           example: "The food was delicious and the service was great!"
  *         customerId:
- *           type: object
- *           properties:
- *             _id:
- *               type: string
- *               example: 660c889c7f9dc3c02b166cac
- *             name:
- *               type: string
- *               example: "John Doe"
- *         restaurantId:
- *           type: object
- *           properties:
- *             _id:
- *               type: string
- *               example: 660a12347f9dc3c02b166abc
- *             name:
- *               type: string
- *               example: "Pizza Palace"
- *             province:
- *               type: string
- *               example: "Bangkok"
- *             tel:
- *               type: string
- *               example: "0891234567"
- *             imgPath:
- *               type: string
- *               example: "/uploads/restaurant/pizza-palace.jpg"
- *         createdAt:
  *           type: string
- *           format: date-time
- *           example: "2024-04-14T13:22:07.123Z"
+ *           format: objectId
+ *           example: 60b8d295f1e2e74f30c6c123
+ *         restaurantId:
+ *           type: string
+ *           format: objectId
+ *           example: 60c72b2f9b1e8a001c8e4f3d
  */
 
 /**
