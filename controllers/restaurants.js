@@ -211,24 +211,21 @@ exports.deleteRestaurant = async (req, res, next) => {
             await logAdminAction(req.user.id, 'Delete', 'Restaurant', req.params.id);
         }
 
-        // Find all reservations for this restaurant and populate the user field
-        const reservations = await Reservation.find({ restaurant: req.params.id }).populate('user', 'name');
-        const reservationIds = reservations.map(reservation => reservation._id);
 
         // Create notifications for users with reservations
-        if (reservations.length > 0) {
-            const notifications = reservations.map(reservation => ({
-                title: 'Restaurant Reservation Cancelled',
-                message: `Your reservation at ${restaurant.name} has been cancelled because the restaurant has been removed from our platform.`,
+       
+            const notifications = {
+                title: `Restaurant ${restaurant.name} is no longer available on our platform.`,
+                message: `We sincerely apologize to customers who had made reservations at this restaurant.`,
                 createdBy: 'system',
-                targetAudience: "All", // Send to specific user
+                targetAudience: "Customers", // Send to specific user
                 publishAt: new Date(),
                 createdAt: new Date()
-            }));
+            };
 
             // Create all notifications
-            await Notification.insertMany(notifications);
-        }
+            await Notification.insertOne(notifications);
+        
 
         // Continue with existing cascading delete logic
         await Reservation.deleteMany({ restaurant: req.params.id });
@@ -240,9 +237,7 @@ exports.deleteRestaurant = async (req, res, next) => {
         res.status(200).json({ 
             success: true, 
             data: {},
-            message: reservations.length > 0 ? 
-                `Restaurant deleted successfully. ${reservations.length} users notified of their cancelled reservations.` : 
-                'Restaurant deleted successfully.'
+            message: 'Restaurant deleted successfully.'
         });
     } catch (err) {
         console.error(err.message);
