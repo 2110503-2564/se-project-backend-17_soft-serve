@@ -155,13 +155,11 @@ exports.getNotifications = async (req, res, next) => {
                 }
             });
             
-            // Admin notifications (always use current time as cutoff)
-            admins.forEach(admin => {
-                conditions.push({
-                    targetAudience: 'Customers',
-                    creatorId: admin._id,
-                    publishAt: { $lte: new Date() }
-                });
+            // Admin/System notifications 
+            conditions.push({
+                targetAudience: 'Customers',
+                createdBy: { $in: ['admin', 'system'] },
+                publishAt: { $lte: new Date() }
             });
             
             // 'All' audience (respect publishAt <= now)
