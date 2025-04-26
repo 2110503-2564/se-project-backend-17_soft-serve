@@ -168,7 +168,7 @@ exports.addReservation = async (req, res, next) => {
         const allExistedReservations = await Reservation.find({ user: req.user.id }).sort({ revDate: -1 });
 
         for (const existingReservation of allExistedReservations) {
-            const existingRevTime = moment(existingReservation.revDate).tz('UTC');
+            const existingRevTime = moment(existingReservation.revDate);
             const oneHourBefore = existingRevTime.clone().subtract(1, 'hours');
             const oneHourAfter = existingRevTime.clone().add(1, 'hours');
 
@@ -191,7 +191,7 @@ exports.addReservation = async (req, res, next) => {
 
         await Notification.create({
             title: 'Reservation Reminder',
-            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).tz('UTC').format('YYYY-MM-DD HH:mm')}`,
+            message: `You have a reservation at ${restaurant.name} on ${moment(reservation.revDate).format('YYYY-MM-DD HH:mm')}`,
             createdBy: 'system',
             targetAudience: reservation._id,
             publishAt,
@@ -336,7 +336,7 @@ exports.updateReservation = async (req, res, next) => {
         for (const existingReservation of allExistedReservations) {
             // Skip the current reservation
             if (existingReservation._id.toString() !== req.params.id) { 
-                const existingRevTime = moment(existingReservation.revDate).tz('UTC');
+                const existingRevTime = moment(existingReservation.revDate);
                 const oneHourBefore = existingRevTime.clone().subtract(1, 'hours');
                 const oneHourAfter = existingRevTime.clone().add(1, 'hours');
 
@@ -394,9 +394,9 @@ exports.deleteReservation = async (req, res, next) => {
 
         // Convert reservation time to Date object
         const reservationTime = new Date(reservation.revDate);
-        const currentTime = moment().tz('UTC').toDate();
+        const currentTime = moment().toDate();
 
-        console.log(moment(reservationTime).tz('UTC').toDate());
+        console.log(moment(reservationTime).toDate());
         console.log(currentTime);
 
         // Check if user is trying to delete within 1 hour of reservation time

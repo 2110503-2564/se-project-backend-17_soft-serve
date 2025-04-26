@@ -50,7 +50,7 @@ exports.createNotification = async (req, res, next) => {
             creatorId: req.user._id,
             createdBy: req.user.role,
             targetAudience,
-            publishAt : moment(publishAt).tz('UTC'),
+            publishAt : moment(publishAt),
             createdAt: Date.now()
         };
 
