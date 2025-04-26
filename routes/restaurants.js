@@ -104,9 +104,68 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *   get:
  *     summary: Get all restaurants
  *     tags: [Restaurants]
+ *     parameters:
+ *       - in: query
+ *         name: select
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of fields to include in the response (e.g., name,address)
+ *       - in: query
+ *         name: sort
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Sort the results by fields (e.g., name,-createdAt for descending order)
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *         description: Number of results per page
  *     responses:
  *       200:
  *         description: List of restaurants
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 25
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     next:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                     prev:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Restaurant'
+ *       400:
+ *         description: Invalid query parameters
  */
 
 /**
@@ -125,6 +184,10 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *     responses:
  *       200:
  *         description: Restaurant details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Restaurant'
  *       404:
  *         description: Restaurant not found
  */

@@ -68,10 +68,25 @@ router.route('/:id')
  *     responses:
  *       200:
  *         description: Successfully retrieved reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 10
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Review'
  *       403:
- *         description: Unauthorized access
+ *         description: Unauthorized access - User does not have the required permissions
  *       500:
- *         description: Server error
+ *         description: Server error - Internal server issues while processing the request
  */
 
 /**

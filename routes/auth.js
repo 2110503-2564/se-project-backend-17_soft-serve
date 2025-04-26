@@ -319,23 +319,82 @@ router.route('/me')
  * @swagger
  * /auth/restaurantmanagers:
  *   get:
+ *     summary: Get all restaurant managers (admin only)
+ *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
- *     summary: Get all users (admin only)
- *     tags: [Authentication]
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: Successfully retrieved restaurant managers
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 2
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "661e23f6f5a0f9b28a7e894e"
+ *                       name:
+ *                         type: string
+ *                         example: "John Doe"
+ *                       tel:
+ *                         type: string
+ *                         example: "081-234-5678"
+ *                       email:
+ *                         type: string
+ *                         example: "johndoe@example.com"
+ *                       role:
+ *                         type: string
+ *                         enum: [user, admin, restaurantManager]
+ *                         example: "restaurantManager"
+ *                       verified:
+ *                         type: boolean
+ *                         example: true
+ *                       restaurant:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "661e23f6f5a0f9b28a7e89ab"
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-04-25T10:00:00.000Z"
  *       403:
- *         description: Unauthorized
+ *         description: Forbidden - User is not authorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User role user is not authorized to access this route"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantManagers);
 
@@ -343,28 +402,81 @@ router.get('/restaurantmanagers', protect, authorize('admin'), getAllRestaurantM
  * @swagger
  * /auth/verify:
  *   post:
+ *     summary: Verify or reject a restaurant manager account (admin only)
+ *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
- *     summary: Verify a restaurant manager account (admin only)
- *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - userId
+ *               - isApprove
  *             properties:
  *               userId:
  *                 type: string
-*               isApprove:
+ *                 description: ID of the user to verify or reject
+ *                 example: "661e23f6f5a0f9b28a7e894e"
+ *               isApprove:
  *                 type: boolean
+ *                 description: Approve (true) or Reject (false)
+ *                 example: true
  *     responses:
  *       200:
- *         description: User verified successfully
+ *         description: Successfully verified or rejected the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User and restaurant verified successfully"
+ *       400:
+ *         description: Bad request (e.g. user not a restaurant manager, already verified)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User already verified"
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not found"
  *       500:
- *         description: Server error
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 router.post('/verify', protect, authorize('admin'), verifyRestaurant);
 
@@ -372,24 +484,83 @@ router.post('/verify', protect, authorize('admin'), verifyRestaurant);
  * @swagger
  * /auth/deluser/{id}:
  *   delete:
- *     security:
- *       - bearerAuth: []
  *     summary: Delete a user (admin only)
  *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
  *         required: true
+ *         description: ID of the user to delete
  *         schema:
  *           type: string
- *         description: ID of the user to delete
  *     responses:
  *       200:
  *         description: User deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: string
+ *                   example: "User deleted"
+ *       400:
+ *         description: Bad request (e.g. cannot delete yourself, cannot delete admin)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot delete yourself"
+ *       403:
+ *         description: Forbidden (only admin can delete)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Only admins can delete user"
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not found"
  *       500:
- *         description: Server error
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 router.delete('/deluser/:id', protect, authorize('admin'), deleteUser);
 
