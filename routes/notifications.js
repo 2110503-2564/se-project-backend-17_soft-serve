@@ -27,6 +27,9 @@ module.exports = router;
  *     tags: [Notifications]
  *     security:
  *       - bearerAuth: []
+ *     description: |
+ *       - Admin can create a notification with any target audience and must provide targetAudience.
+ *       - Restaurant Manager can only create a notification for "Customers" and must be verified and associated with a restaurant.
  *     requestBody:
  *       required: true
  *       content:
@@ -58,11 +61,56 @@ module.exports = router;
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Notification'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Notification'
  *       400:
- *         description: Invalid user role, missing targetAudience for admin, or restaurantManager not verified or not associated with a restaurant
+ *         description: |
+ *           Invalid user role or missing required data:
+ *           - For admin: targetAudience is required.
+ *           - For restaurantManager: Must be verified and associated with a restaurant.
+ *           - Invalid role if user is neither admin nor restaurantManager.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Restaurant manager must be verified to create notifications"
+ *       403:
+ *         description: User does not have the required permissions or role to create notifications
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized role"
  *       500:
- *         description: Server error
+ *         description: Server error - Unable to process the request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 /**
@@ -175,10 +223,48 @@ module.exports = router;
  *                 message:
  *                   type: string
  *                   example: Notification deleted successfully
+ *       403:
+ *         description: |
+ *           Not authorized to delete the notification.
+ *           - User must be the creator of the notification or an admin.
+ *           - User role should not be 'user' for deleting the notification.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Not authorized to delete this notification"
  *       404:
- *         description: Notification not found
+ *         description: Notification not found with the provided ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "No notification found with ID of {id}"
  *       500:
- *         description: Server error
+ *         description: Server error - Unable to process the request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
  */
 
 /**
