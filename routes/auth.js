@@ -14,6 +14,7 @@ const AdminLog = require('../models/AdminLog');
 *     User:
 *       type: object
 *       required:
+*         - _id
 *         - name
 *         - email
 *         - tel

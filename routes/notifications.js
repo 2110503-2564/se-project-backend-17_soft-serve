@@ -193,6 +193,7 @@ module.exports = router;
  *     Notification:
  *       type: object
  *       required:
+ *         - _id
  *         - title
  *         - message
  *         - createdBy

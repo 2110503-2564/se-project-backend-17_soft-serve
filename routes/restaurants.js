@@ -38,6 +38,7 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *     Restaurant:
  *       type: object
  *       required:
+ *         - _id
  *         - name
  *         - foodType
  *         - address

@@ -30,6 +30,7 @@ router.route('/:id').get(protect, getReservation)
  *     Reservation:
  *       type: object
  *       required:
+ *         - _id
  *         - revDate
  *         - restaurant
  *         - user

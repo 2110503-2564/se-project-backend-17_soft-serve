@@ -25,6 +25,7 @@ router.route('/:id')
  *     Review:
  *       type: object
  *       required:
+ *         - _id
  *         - rating
  *         - review
  *         - customerId
