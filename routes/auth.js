@@ -199,8 +199,18 @@ router.post('/login', login);
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       200:
- *         description: Logged out successfully
+*       200:
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 success:
+*                   type: boolean
+*                   example: true
+*                 message:
+*                   type: string
+*                   example: "Logged out successfully"
  */
 router.post('/logout', protect, logout);
 
@@ -213,7 +223,7 @@ router.post('/logout', protect, logout);
 *     summary: Return information about me
 *     tags: [Authentication]
 *     responses:
-*       201:
+*       200:
 *         description: My user profile
 *         content:
 *           application/json:
