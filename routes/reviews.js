@@ -57,15 +57,19 @@ router.route('/:id')
  *   get:
  *     security:
  *       - bearerAuth: []
- *     summary: Get all reviews or filter by restaurant (admin, manager, user)
+ *     summary: Get all reviews (admin, restaurant manager, user)
  *     tags: [Reviews]
+ *     description: >
+ *       - Admin: View all reviews or filter by restaurantId (query param).  
+ *       - Restaurant Manager: View reviews of their assigned restaurant only.  
+ *       - User: View their own reviews or filter by restaurantId (query param).
  *     parameters:
  *       - in: query
  *         name: restaurantId
  *         schema:
  *           type: string
  *         required: false
- *         description: Optional restaurant ID to filter reviews
+ *         description: Optional restaurant ID to filter reviews (admin, user only)
  *     responses:
  *       200:
  *         description: Successfully retrieved reviews
@@ -79,15 +83,70 @@ router.route('/:id')
  *                   example: true
  *                 count:
  *                   type: integer
- *                   example: 10
+ *                   example: 5
+ *                 starCount:
+ *                   type: object
+ *                   properties:
+ *                     1:
+ *                       type: integer
+ *                       example: 1
+ *                     2:
+ *                       type: integer
+ *                       example: 0
+ *                     3:
+ *                       type: integer
+ *                       example: 2
+ *                     4:
+ *                       type: integer
+ *                       example: 1
+ *                     5:
+ *                       type: integer
+ *                       example: 1
+ *                   description: (Only for restaurant manager) Summary of reviews by star rating
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Review'
  *       403:
- *         description: Unauthorized access - User does not have the required permissions
+ *         description: Unauthorized - Access forbidden due to role or assignment
  *       500:
- *         description: Server error - Internal server issues while processing the request
+ *         description: Server error - Unable to retrieve reviews
+ *
+ * /restaurants/{restaurantId}/reviews:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Get reviews for a specific restaurant
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: restaurantId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Restaurant ID to filter reviews
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved restaurant reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Review'
+ *       403:
+ *         description: Unauthorized - Access forbidden due to role or assignment
+ *       500:
+ *         description: Server error - Unable to retrieve reviews
  */
 
 /**
