@@ -268,11 +268,44 @@ router.route('/:id').get(protect, getReservation)
  *                   type: object
  *                   $ref: '#/components/schemas/Reservation'
  *       400:
- *         description: Invalid input or reservation cannot be made
+ *         description: Invalid input or reservation cannot be made due to constraints (e.g., time overlap, restaurant unverified, etc.)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Reservation time must be within the restaurant's operating hours."
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Restaurant not found. Please check the restaurant ID."
  *       500:
- *         description: Server error
+ *         description: Server error when creating reservation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to create reservation. Please try again later."
  */
 
 /**
@@ -289,18 +322,92 @@ router.route('/:id').get(protect, getReservation)
  *         required: true
  *         schema:
  *           type: string
- *         description: Reservation ID
+ *         description: Reservation ID to update
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Reservation'
+ *             type: object
+ *             properties:
+ *               revDate:
+ *                 type: string
+ *                 format: date-time
+ *                 example: 2025-05-15T19:00:00.000Z
+ *               numberOfPeople:
+ *                 type: integer
+ *                 example: 4
+ *             required:
+ *               - revDate
+ *               - numberOfPeople
  *     responses:
  *       200:
- *         description: Reservation updated
+ *         description: Reservation updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Reservation updated successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/Reservation'
+ *       400:
+ *         description: Invalid reservation data, or trying to update within 1 hour of reservation time, or exceeding max reservation capacity
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Not enough reservation slots available."
+ *       401:
+ *         description: User is not authorized to update the reservation (if the user is not the owner of the reservation or an admin)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User is not authorized to update this reservation."
  *       404:
- *         description: Reservation not found
+ *         description: Reservation not found or associated restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Reservation not found. Please check the ID and try again."
+ *       500:
+ *         description: Internal server error when attempting to update the reservation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot update the reservation"
  */
 
 /**
@@ -317,12 +424,73 @@ router.route('/:id').get(protect, getReservation)
  *         required: true
  *         schema:
  *           type: string
- *         description: Reservation ID
+ *         description: Reservation ID to delete
  *     responses:
  *       200:
- *         description: Reservation deleted
+ *         description: Reservation deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Reservation deleted successfully
+ *       400:
+ *         description: Cannot delete reservation within 1 hour of scheduled time or invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "You cannot delete the reservation within 1 hour of the scheduled time"
+ *       401:
+ *         description: User is not authorized to delete the reservation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User is not authorized to delete this reservation"
  *       404:
  *         description: Reservation not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No reservation with the id of {id}"
+ *       500:
+ *         description: Internal server error when attempting to delete the reservation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot delete the reservation"
  */
 
 module.exports = router;
