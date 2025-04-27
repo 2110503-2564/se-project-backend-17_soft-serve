@@ -211,12 +211,71 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Restaurant'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "The Great Restaurant"
+ *               description:
+ *                 type: string
+ *                 example: "A great place to enjoy delicious meals."
+ *               foodType:
+ *                 type: string
+ *                 example: "Thai"
+ *               address:
+ *                 type: string
+ *                 example: "123 Main St, Bangkok"
+ *               province:
+ *                 type: string
+ *                 example: "Bangkok"
+ *               district:
+ *                 type: string
+ *                 example: "Sathorn"
+ *               postalcode:
+ *                 type: string
+ *                 example: "10120"
+ *               tel:
+ *                 type: string
+ *                 example: "+6621234567"
+ *               openTime:
+ *                 type: string
+ *                 example: "10:00"
+ *               closeTime:
+ *                 type: string
+ *                 example: "22:00"
+ *               maxReservation:
+ *                 type: integer
+ *                 example: 50
+ *               ratingrating:
+ *                 type: number
+ *                 example: 4.5
+ *               reviewCount:
+ *                 type: integer
+ *                 example: 100
+ *               imgPath:
+ *                 type: string
+ *                 example: "https://example.com/image.jpg"
+ *               verified:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       201:
  *         description: Restaurant created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Restaurant'
  *       400:
  *         description: Invalid input
+ *       500:
+ *         description: Server error
  */
 
 /**
@@ -239,12 +298,70 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Restaurant'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Restaurant Name"
+ *               description:
+ *                 type: string
+ *                 example: "An updated description of the restaurant."
+ *               foodType:
+ *                 type: string
+ *                 example: "Italian"
+ *               address:
+ *                 type: string
+ *                 example: "456 New Street, Bangkok"
+ *               province:
+ *                 type: string
+ *                 example: "Bangkok"
+ *               district:
+ *                 type: string
+ *                 example: "Khlong Toei"
+ *               postalcode:
+ *                 type: string
+ *                 example: "10110"
+ *               tel:
+ *                 type: string
+ *                 example: "+6627654321"
+ *               openTime:
+ *                 type: string
+ *                 example: "09:00"
+ *               closeTime:
+ *                 type: string
+ *                 example: "23:00"
+ *               maxReservation:
+ *                 type: integer
+ *                 example: 80
+ *               ratingrating:
+ *                 type: number
+ *                 example: 4.7
+ *               reviewCount:
+ *                 type: integer
+ *                 example: 120
+ *               imgPath:
+ *                 type: string
+ *                 example: "https://example.com/updated-image.jpg"
  *     responses:
  *       200:
  *         description: Restaurant updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   $ref: '#/components/schemas/Restaurant'
+ *       403:
+ *         description: Unauthorized access (for non-verified or unpermitted users)
  *       404:
  *         description: Restaurant not found
+ *       400:
+ *         description: Invalid input or server error
  */
 
 /**
@@ -264,9 +381,31 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *         description: Restaurant ID
  *     responses:
  *       200:
- *         description: Restaurant deleted
+ *         description: Restaurant deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 'Restaurant deleted successfully.'
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: 'Restaurant not found with id of {id}'
  */
 router.route('/create').post(createRestaurantForRestaurantManager);
 router.delete('/system/:id', systemAuthMiddleware, async (req, res) => {
