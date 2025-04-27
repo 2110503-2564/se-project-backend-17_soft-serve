@@ -176,18 +176,79 @@ router.route('/:id')
  *               rating:
  *                 type: number
  *                 example: 4.5
+ *                 description: The rating for the restaurant, typically between 1 and 5 stars
  *               review:
  *                 type: string
  *                 example: "Excellent food!"
+ *                 description: The text of the review or comment about the restaurant
  *     responses:
  *       201:
  *         description: Review successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "60d0fe4f5311236168a109d2"
+ *                     rating:
+ *                       type: number
+ *                       example: 4.5
+ *                     review:
+ *                       type: string
+ *                       example: "Excellent food!"
+ *                     customerId:
+ *                       type: string
+ *                       example: "60d0fe4f5311236168a109d3"
+ *                     restaurantId:
+ *                       type: string
+ *                       example: "60d0fe4f5311236168a109d4"
  *       400:
  *         description: Invalid input or unverified restaurant
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid rating value or unverified restaurant"
  *       404:
  *         description: Restaurant not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No restaurant found with ID {restaurantId}"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Error creating review"
  */
 
 /**
@@ -208,13 +269,56 @@ router.route('/:id')
  *     responses:
  *       200:
  *         description: Review deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: {}
  *       403:
- *         description: Not authorized
+ *         description: Not authorized to delete review (admin only)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: 'User {userId} is not authorized to delete this review'
  *       404:
  *         description: Review not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: 'No review found with ID {id}'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: 'Cannot delete review'
  */
-
 
 module.exports = router;
