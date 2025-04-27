@@ -48,6 +48,11 @@ router.route('/:restaurantId/availability').get(getAvailability);
  *         - tel
  *         - openTime
  *         - closeTime
+ *         - ratingrating
+ *         - reviewCount
+ *         - maxReservation
+ *         - imgPath
+ *         - verified
  *       properties:
  *         _id:
  *           type: string
