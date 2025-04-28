@@ -179,10 +179,6 @@ exports.getNotifications = async (req, res, next) => {
             const utcISOString = localDate.toISOString();
 
             console.log(utcISOString);
-
-            if(localDate < pa){
-                console.log('aaa');
-            }
                         
             query = Notification.find({ $or: conditions });
                      
