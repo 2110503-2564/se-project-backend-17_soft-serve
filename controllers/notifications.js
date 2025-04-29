@@ -122,7 +122,7 @@ exports.getNotifications = async (req, res, next) => {
                 }
             });
 
-            console.log(latestReservationMap);
+            // console.log(latestReservationMap);
             
             const restaurantIDs = Array.from(latestReservationMap.keys());
             const reservationIDs = userReservations.map(r => r._id);
@@ -178,7 +178,7 @@ exports.getNotifications = async (req, res, next) => {
 
             const utcISOString = localDate.toISOString();
 
-            console.log(utcISOString);
+            // console.log(utcISOString);
                         
             query = Notification.find({ $or: conditions });
                      

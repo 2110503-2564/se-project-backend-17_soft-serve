@@ -211,8 +211,6 @@ exports.addReservation = async (req, res, next) => {
     }
 };
 
-
-
 function isReservationWithinOpeningHours(revTime, openTime, closeTime) {
     // Check if the restaurant is open
     if (!openTime || !closeTime) {
@@ -224,9 +222,9 @@ function isReservationWithinOpeningHours(revTime, openTime, closeTime) {
     const revHour = revTime.hours(), revMinute = revTime.minutes();
     // console.log(openHour, openMinute, closeHour, closeMinute, revHour, revMinute);
 
-    const open = moment({ hour: openHour, minute: openMinute });
-    const close = moment({ hour: closeHour, minute: closeMinute });
-    const rev = moment({ hour: revHour, minute: revMinute });
+    const open = moment({ hour: openHour, minute: openMinute }).tz('Asia/Bangkok');
+    const close = moment({ hour: closeHour, minute: closeMinute }).tz('Asia/Bangkok');
+    const rev = moment({ hour: revHour, minute: revMinute }).tz('Asia/Bangkok');
 
     const isOpen = rev.isSameOrAfter(open) && rev.isSameOrBefore(close);
 
