@@ -1,20 +1,15 @@
-# ใช้ Node.js ที่เหมาะสม
-FROM node:18-alpine
+FROM node:18
 
-# กำหนด Working Directory
 WORKDIR /usr/src/app
 
-# คัดลอกไฟล์ package.json และ package-lock.json
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# ติดตั้ง dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
+RUN npm install cors
+RUN npm install -g nodemon
 
-# คัดลอกโค้ดทั้งหมดไปยัง container
 COPY . .
 
-# กำหนดพอร์ตที่ backend จะรัน
 EXPOSE 5000
 
-# รัน backend ด้วยคำสั่ง dev หรือ start (พัฒนาหรือ production)
 CMD ["npm", "run", "dev"]
