@@ -15,7 +15,7 @@ const mockRes = () => {
   return res;
 };
 
-describe('getNotifications - admin', () => {
+describe('1. getNotifications - admin', () => {
   let req, res, mockQuery;
 
   beforeEach(() => {
@@ -47,7 +47,7 @@ describe('getNotifications - admin', () => {
     Notification.find = jest.fn().mockReturnValue(mockQuery);
   });
 
-  it('should return notifications for admin with pagination and filtering', async () => {
+  it('1.1. should return notifications for admin with pagination and filtering', async () => {
     const fakeNotifications = [{ _id: 'noti1', title: 'Test 1' }];
 
     Notification.find.mockImplementation(() => ({
@@ -74,7 +74,7 @@ describe('getNotifications - admin', () => {
     }));
   });
 
-  it('should handle error correctly', async () => {
+  it('1.2. should handle error correctly', async () => {
     Notification.find.mockImplementation(() => { throw new Error('Something went wrong'); });
 
     await getNotifications(req, res);
@@ -87,7 +87,7 @@ describe('getNotifications - admin', () => {
   });
 });
 
-describe('getNotifications - restaurantManager', () => {
+describe('2. getNotifications - restaurantManager', () => {
   let req, res, mockQuery;
 
   beforeEach(() => {
@@ -119,7 +119,7 @@ describe('getNotifications - restaurantManager', () => {
     Notification.find = jest.fn().mockReturnValue(mockQuery);
   });
 
-  it('should return notifications for restaurantManager', async () => {
+  it('2.1. should return notifications for restaurantManager', async () => {
     const fakeNotifications = [
       { _id: 'noti1', title: 'Manager noti 1' },
       { _id: 'noti2', title: 'Manager noti 2' }
@@ -142,7 +142,7 @@ describe('getNotifications - restaurantManager', () => {
     expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle errors for restaurantManager', async () => {
+  it('2.2. should handle errors for restaurantManager', async () => {
     Notification.find.mockImplementation(() => { throw new Error('DB error'); });
 
     await getNotifications(req, res);
@@ -155,7 +155,7 @@ describe('getNotifications - restaurantManager', () => {
   });
 });
 
-describe('getNotifications - user', () => {
+describe('3. getNotifications - user', () => {
   let req, res;
 
   beforeEach(() => {
@@ -166,7 +166,7 @@ describe('getNotifications - user', () => {
     res = mockRes();
   });
 
-  it('should return notifications for user', async () => {
+  it('3.1. should return notifications for user', async () => {
     const mockReservations = [
       { _id: 'res1', restaurant: 'rest1', revDate: new Date('2025-04-20') },
       { _id: 'res2', restaurant: 'rest2', revDate: new Date('2025-04-21') }
@@ -201,7 +201,7 @@ describe('getNotifications - user', () => {
     expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle errors for user', async () => {
+  it('3.2. should handle errors for user', async () => {
     Reservation.find.mockImplementation(() => { throw new Error('Reservation fetch error'); });
 
     await getNotifications(req, res);
@@ -213,7 +213,7 @@ describe('getNotifications - user', () => {
     }));
   });
 
-  it('should update latestReservationMap if revDate is newer', async () => {
+  it('3.3. should update latestReservationMap if revDate is newer', async () => {
     const olderDate = new Date('2025-04-20');
     const newerDate = new Date('2025-04-22');
   

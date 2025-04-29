@@ -11,7 +11,7 @@ describe('createNotification', () => {
     jest.clearAllMocks();
   });
 
-  it('should return 400 if admin does not provide targetAudience', async () => {
+  it('1. should return 400 if admin does not provide targetAudience', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: { title: 'Test', message: 'Hello' },
@@ -28,7 +28,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should return 400 if restaurantManager is not verified', async () => {
+  it('2. should return 400 if restaurantManager is not verified', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: { title: 'Test', message: 'Hello' },
@@ -45,7 +45,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should return 400 if restaurantManager has no restaurant', async () => {
+  it('3. should return 400 if restaurantManager has no restaurant', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: { title: 'Test', message: 'Hello' },
@@ -62,7 +62,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should return 400 if role is invalid', async () => {
+  it('4. should return 400 if role is invalid', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: { title: 'Test', message: 'Hello' },
@@ -79,7 +79,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should create notification for valid admin', async () => {
+  it('5. should create notification for valid admin', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: {
@@ -110,7 +110,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should create notification for valid restaurantManager', async () => {
+  it('6. should create notification for valid restaurantManager', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: {
@@ -147,7 +147,7 @@ describe('createNotification', () => {
     });
   });
 
-  it('should return 500 if Notification.create throws error', async () => {
+  it('7. should return 500 if Notification.create throws error', async () => {
     const req = httpMocks.createRequest({
       method: 'POST',
       body: {

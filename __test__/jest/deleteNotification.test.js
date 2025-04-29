@@ -19,7 +19,7 @@ describe('deleteNotification', () => {
     next = jest.fn();
     });
 
-    it('should return 404 if notification not found', async () => {
+    it('1. should return 404 if notification not found', async () => {
     Notification.findById = jest.fn().mockResolvedValue(null);  // Mock value as null (notification not found)
 
     await deleteNotification(req, res, next);
@@ -31,7 +31,7 @@ describe('deleteNotification', () => {
     });
     });
 
-    it('should return 403 if user is not authorized to delete notification', async () => {
+    it('2. should return 403 if user is not authorized to delete notification', async () => {
     const mockNotification = {
         creatorId: { toString: () => 'anotherUserId' },  // creatorId that does not match the user
         deleteOne: jest.fn()
@@ -50,7 +50,7 @@ describe('deleteNotification', () => {
     });
     });
 
-    it('should delete notification if user is creator', async () => {
+    it('3. should delete notification if user is creator', async () => {
     const mockNotification = {
         creatorId: { toString: () => 'user123' },  // creatorId matches the user
         deleteOne: jest.fn()
@@ -67,7 +67,7 @@ describe('deleteNotification', () => {
     });
     });
 
-    it('should delete notification if user is admin', async () => {
+    it('4. should delete notification if user is admin', async () => {
     const mockNotification = {
         creatorId: { toString: () => 'anotherUserId' },  // creatorId does not match the admin
         deleteOne: jest.fn()
@@ -86,7 +86,7 @@ describe('deleteNotification', () => {
     });
     });
 
-    it('should return 500 if an error occurs', async () => {
+    it('5. should return 500 if an error occurs', async () => {
     const errorMessage = 'Something went wrong';
     Notification.findById = jest.fn().mockRejectedValue(new Error(errorMessage));  // Mock an error
 
